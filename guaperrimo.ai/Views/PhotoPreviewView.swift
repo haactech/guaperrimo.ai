@@ -4,9 +4,11 @@
 //
 
 #if os(iOS)
-import Photos
+import OSLog
 import SwiftUI
 import UIKit
+
+private let logger = Logger(subsystem: "ai.guaperrimo", category: "PhotoPreview")
 
 struct PhotoPreviewView: View {
     let image: UIImage
@@ -15,6 +17,9 @@ struct PhotoPreviewView: View {
 
     @State private var isSaved = false
     @State private var isSaving = false
+    @State private var errorMessage: String?
+
+    private let uploadService = ImageUploadService()
 
     var body: some View {
         ZStack {
@@ -39,6 +44,17 @@ struct PhotoPreviewView: View {
                         .padding(.bottom, 16)
                 }
 
+                if let errorMessage {
+                    Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 14)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .transition(.opacity.combined(with: .scale))
+                        .padding(.bottom, 16)
+                }
+
                 HStack(spacing: 40) {
                     Button {
                         onRetake()
@@ -52,14 +68,21 @@ struct PhotoPreviewView: View {
                     }
 
                     Button {
-                        saveToPhotoLibrary()
+                        uploadImage()
                     } label: {
-                        Label(
-                            isSaved
-                                ? String(localized: "photo_saved")
-                                : String(localized: "save_photo"),
-                            systemImage: isSaved ? "checkmark" : "square.and.arrow.down"
-                        )
+                        Group {
+                            if isSaving {
+                                ProgressView()
+                                    .tint(.black)
+                            } else {
+                                Label(
+                                    isSaved
+                                        ? String(localized: "photo_saved")
+                                        : String(localized: "save_photo"),
+                                    systemImage: isSaved ? "checkmark" : "square.and.arrow.up"
+                                )
+                            }
+                        }
                         .font(.headline)
                         .foregroundStyle(.black)
                         .padding(.horizontal, 24)
@@ -72,29 +95,26 @@ struct PhotoPreviewView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: isSaved)
+        .animation(.easeInOut(duration: 0.3), value: errorMessage)
     }
 
-    private func saveToPhotoLibrary() {
+    private func uploadImage() {
         isSaving = true
-        PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
-            guard status == .authorized || status == .limited else {
-                Task { @MainActor in isSaving = false }
-                return
-            }
+        errorMessage = nil
 
-            PHPhotoLibrary.shared().performChanges {
-                guard let data = image.jpegData(compressionQuality: 0.95) else { return }
-                let request = PHAssetCreationRequest.forAsset()
-                request.addResource(with: .photo, data: data, options: nil)
-            } completionHandler: { success, _ in
-                Task { @MainActor in
-                    isSaving = false
-                    if success {
-                        isSaved = true
-                        onSave()
-                    }
-                }
+        Task {
+            do {
+                let sessionId = UUID().uuidString
+                logger.info("🚀 Starting upload — session: \(sessionId)")
+                let response = try await uploadService.upload(image: image, sessionId: sessionId)
+                logger.info("✅ Saved — session: \(response.sessionId), url: \(response.url)")
+                isSaved = true
+                onSave()
+            } catch {
+                logger.error("❌ Upload failed: \(String(describing: error))")
+                errorMessage = error.localizedDescription
             }
+            isSaving = false
         }
     }
 }
