@@ -1,0 +1,27 @@
+/* Onboarding */
+"onboarding_instruction" = "Apoya el teléfono en una superficie a ~105 cm del suelo. Aléjate 120 cm y encuádrate en la silueta.";
+"onboarding_ready" = "Listo, abrir cámara";
+
+/* Banner (returning users) */
+"setup_banner" = "Teléfono a 105 cm · Distancia 120 cm";
+
+/* Camera View - Positioning states */
+"no_person" = "Colócate frente a la cámara";
+"too_far" = "Acércate un poco";
+"too_close" = "Aléjate un poco";
+"move_right" = "Muévete a la derecha";
+"move_left" = "Muévete a la izquierda";
+"stay_still" = "Quédate quieto…";
+
+/* Auto-capture */
+"hold_still" = "No te muevas...";
+
+/* Photo Preview */
+"retake" = "Repetir";
+"save_photo" = "Guardar";
+"photo_saved" = "Foto guardada";
+
+/* Camera Permission */
+"camera_permission_title" = "Acceso a la Cámara";
+"camera_permission_message" = "guaperrimo.ai necesita acceso a tu cámara para capturar fotos de tu outfit y analizar tu estilo.";
+"open_settings" = "Abrir Ajustes";

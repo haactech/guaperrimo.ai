@@ -11,7 +11,11 @@ import SwiftUI
 struct guaperrimo_aiApp: App {
     var body: some Scene {
         WindowGroup {
+            #if os(iOS)
+            CameraView()
+            #else
             ContentView()
+            #endif
         }
     }
 }

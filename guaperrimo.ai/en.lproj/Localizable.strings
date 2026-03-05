@@ -1,0 +1,27 @@
+/* Onboarding */
+"onboarding_instruction" = "Place your phone on a surface at ~105 cm from the floor. Stand 120 cm away and align yourself with the silhouette.";
+"onboarding_ready" = "Ready, open camera";
+
+/* Banner (returning users) */
+"setup_banner" = "Phone at 105 cm · Distance 120 cm";
+
+/* Camera View - Positioning states */
+"no_person" = "Step in front of the camera";
+"too_far" = "Move a bit closer";
+"too_close" = "Step back a little";
+"move_right" = "Move to the right";
+"move_left" = "Move to the left";
+"stay_still" = "Stay still…";
+
+/* Auto-capture */
+"hold_still" = "Hold still...";
+
+/* Photo Preview */
+"retake" = "Retake";
+"save_photo" = "Save";
+"photo_saved" = "Photo saved";
+
+/* Camera Permission */
+"camera_permission_title" = "Camera Access";
+"camera_permission_message" = "guaperrimo.ai needs camera access to capture photos of your outfit and analyze your style.";
+"open_settings" = "Open Settings";
