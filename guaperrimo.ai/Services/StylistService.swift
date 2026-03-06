@@ -42,7 +42,7 @@ struct LiveStylistService: StylistService {
         let url = URL(string: "\(baseURL)/session/\(sessionId)/analyze")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.timeoutInterval = 120
+        request.timeoutInterval = 180
 
         logger.info("⬆️ POST /session/\(sessionId)/analyze")
 
