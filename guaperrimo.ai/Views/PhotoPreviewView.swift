@@ -13,11 +13,12 @@ private let logger = Logger(subsystem: "ai.guaperrimo", category: "PhotoPreview"
 struct PhotoPreviewView: View {
     let image: UIImage
     let onRetake: () -> Void
-    let onSave: () -> Void
 
     @State private var isSaved = false
     @State private var isSaving = false
     @State private var errorMessage: String?
+    @State private var showConversation = false
+    @State private var uploadedSessionId: String?
 
     private let uploadService = ImageUploadService()
 
@@ -96,6 +97,11 @@ struct PhotoPreviewView: View {
         }
         .animation(.easeInOut(duration: 0.3), value: isSaved)
         .animation(.easeInOut(duration: 0.3), value: errorMessage)
+        .fullScreenCover(isPresented: $showConversation) {
+            if let sessionId = uploadedSessionId {
+                ConversationView(sessionId: sessionId)
+            }
+        }
     }
 
     private func uploadImage() {
@@ -109,7 +115,8 @@ struct PhotoPreviewView: View {
                 let response = try await uploadService.upload(image: image, sessionId: sessionId)
                 logger.info("✅ Saved — session: \(response.sessionId), url: \(response.url)")
                 isSaved = true
-                onSave()
+                uploadedSessionId = response.sessionId
+                showConversation = true
             } catch {
                 logger.error("❌ Upload failed: \(String(describing: error))")
                 errorMessage = error.localizedDescription

@@ -13,5 +13,9 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>guaperrimo.ai usa reconocimiento de voz para conversar con tu estilista AI.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>guaperrimo.ai necesita el microfono para entrada de voz.</string>
 </dict>
 </plist>
