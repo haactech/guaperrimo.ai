@@ -25,3 +25,10 @@
 "camera_permission_title" = "Acceso a la Cámara";
 "camera_permission_message" = "guaperrimo.ai necesita acceso a tu cámara para capturar fotos de tu outfit y analizar tu estilo.";
 "open_settings" = "Abrir Ajustes";
+
+/* Conversation */
+"thinking" = "Analizando tu estilo...";
+"voice_input_hint" = "Toca para hablar";
+"voice_listening" = "Escuchando...";
+"send_message" = "Enviar";
+"type_message" = "Escribe un mensaje...";

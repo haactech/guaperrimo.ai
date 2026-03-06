@@ -285,9 +285,6 @@ struct CameraView: View {
                     image: image,
                     onRetake: {
                         cameraManager.retakePhoto()
-                    },
-                    onSave: {
-                        // TODO: Navigate to style analysis
                     }
                 )
             }
