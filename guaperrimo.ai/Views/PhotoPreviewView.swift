@@ -19,6 +19,7 @@ struct PhotoPreviewView: View {
     @State private var errorMessage: String?
     @State private var showConversation = false
     @State private var uploadedSessionId: String?
+    @State private var uploadedImageUrl: String?
 
     private let uploadService = ImageUploadService()
 
@@ -98,8 +99,8 @@ struct PhotoPreviewView: View {
         .animation(.easeInOut(duration: 0.3), value: isSaved)
         .animation(.easeInOut(duration: 0.3), value: errorMessage)
         .fullScreenCover(isPresented: $showConversation) {
-            if let sessionId = uploadedSessionId {
-                ConversationView(sessionId: sessionId)
+            if let sessionId = uploadedSessionId, let imageUrl = uploadedImageUrl {
+                ConversationView(sessionId: sessionId, imageUrl: imageUrl)
             }
         }
     }
@@ -116,6 +117,7 @@ struct PhotoPreviewView: View {
                 logger.info("✅ Saved — session: \(response.sessionId), url: \(response.url)")
                 isSaved = true
                 uploadedSessionId = response.sessionId
+                uploadedImageUrl = response.url
                 showConversation = true
             } catch {
                 logger.error("❌ Upload failed: \(String(describing: error))")

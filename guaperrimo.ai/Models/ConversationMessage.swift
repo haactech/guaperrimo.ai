@@ -6,35 +6,38 @@
 #if os(iOS)
 import Foundation
 
-enum MessageRole: Sendable, Equatable {
+nonisolated enum MessageRole: Sendable, Equatable {
     case stylist
     case user
 }
 
-struct StyleOption: Sendable, Identifiable, Equatable {
-    let id: String
-    let title: String
-    let description: String
-}
-
-struct ConversationMessage: Sendable, Identifiable, Equatable {
+nonisolated struct ConversationMessage: Sendable, Identifiable, Equatable {
     let id: UUID
     let role: MessageRole
     let text: String
-    let options: [StyleOption]
+    let options: [ChatOption]
+    let inputMode: InputMode
+    let priorityActions: [PriorityAction]
+    let isFinal: Bool
     let timestamp: Date
 
     init(
         id: UUID = UUID(),
         role: MessageRole,
         text: String,
-        options: [StyleOption] = [],
+        options: [ChatOption] = [],
+        inputMode: InputMode = .none,
+        priorityActions: [PriorityAction] = [],
+        isFinal: Bool = false,
         timestamp: Date = Date()
     ) {
         self.id = id
         self.role = role
         self.text = text
         self.options = options
+        self.inputMode = inputMode
+        self.priorityActions = priorityActions
+        self.isFinal = isFinal
         self.timestamp = timestamp
     }
 }

@@ -35,6 +35,51 @@ struct APIClient: Sendable {
     static let baseURL = "http://192.168.100.39:8080" // TODO: production URL
     #endif
 
+    func postJSON<TBody: Encodable, TResponse: Decodable & Sendable>(
+        path: String,
+        body: TBody,
+        timeout: TimeInterval = 60
+    ) async throws -> TResponse {
+        guard let url = URL(string: "\(Self.baseURL)\(path)") else {
+            logger.error("Invalid URL: \(Self.baseURL)\(path)")
+            throw APIError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = timeout
+
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        request.httpBody = try encoder.encode(body)
+
+        let bodyString = String(data: request.httpBody!, encoding: .utf8) ?? ""
+        logger.info("⬆️ POST \(url.absoluteString) — \(bodyString)")
+
+        let (responseData, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+
+        let responseBody = String(data: responseData, encoding: .utf8) ?? "<binary \(responseData.count) bytes>"
+        logger.info("⬇️ HTTP \(httpResponse.statusCode) — \(responseBody)")
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            throw APIError.serverError(statusCode: httpResponse.statusCode, message: responseBody)
+        }
+
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        do {
+            return try decoder.decode(TResponse.self, from: responseData)
+        } catch {
+            logger.error("❌ Decode error: \(error.localizedDescription) — body: \(responseBody)")
+            throw APIError.decodingFailed(underlying: error, body: responseBody)
+        }
+    }
+
     func uploadMultipart<T: Decodable & Sendable>(
         path: String,
         fieldName: String,

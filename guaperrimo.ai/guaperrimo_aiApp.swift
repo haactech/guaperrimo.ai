@@ -15,8 +15,9 @@ struct guaperrimo_aiApp: App {
             #if DEBUG
             // Debug: skip photo flow, jump straight to conversation
             let debugSessionId: String? = "EECBB890-5690-485A-B272-1C6A85CCC858"
-            if let sessionId = debugSessionId {
-                ConversationView(sessionId: sessionId)
+            let debugImageUrl: String? = "https://example.com/debug-image.jpg"
+            if let sessionId = debugSessionId, let imageUrl = debugImageUrl {
+                ConversationView(sessionId: sessionId, imageUrl: imageUrl)
             } else {
                 CameraView()
             }

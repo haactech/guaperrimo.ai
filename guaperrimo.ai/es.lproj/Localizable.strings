@@ -28,7 +28,11 @@
 
 /* Conversation */
 "thinking" = "Analizando tu estilo...";
-"voice_input_hint" = "Toca para hablar";
+"voice_hold_hint" = "Manten presionado para hablar";
 "voice_listening" = "Escuchando...";
-"send_message" = "Enviar";
-"type_message" = "Escribe un mensaje...";
+"voice_send" = "Enviar";
+"voice_retry" = "Repetir";
+"mic_denied" = "guaperrimo.ai necesita acceso al microfono. Activalo en Ajustes.";
+"error_retry" = "Intentar de nuevo";
+"error_generic" = "Algo salio mal. Intenta de nuevo.";
+"voice_error" = "No te entendi. Intenta de nuevo.";

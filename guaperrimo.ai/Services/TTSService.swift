@@ -172,6 +172,7 @@ final class ElevenLabsTTSService: NSObject, TTSService, AVAudioPlayerDelegate, A
     nonisolated func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
         Task { @MainActor in
             self.player = nil
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
             self.continuation?.resume()
             self.continuation = nil
         }
@@ -180,6 +181,7 @@ final class ElevenLabsTTSService: NSObject, TTSService, AVAudioPlayerDelegate, A
     nonisolated func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: (any Error)?) {
         Task { @MainActor in
             self.player = nil
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
             self.continuation?.resume()
             self.continuation = nil
         }
@@ -192,6 +194,7 @@ final class ElevenLabsTTSService: NSObject, TTSService, AVAudioPlayerDelegate, A
         didFinish utterance: AVSpeechUtterance
     ) {
         Task { @MainActor in
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
             self.continuation?.resume()
             self.continuation = nil
         }
@@ -235,6 +238,7 @@ final class StubTTSService: NSObject, TTSService, AVSpeechSynthesizerDelegate {
         didFinish utterance: AVSpeechUtterance
     ) {
         Task { @MainActor in
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
             self.continuation?.resume()
             self.continuation = nil
         }
