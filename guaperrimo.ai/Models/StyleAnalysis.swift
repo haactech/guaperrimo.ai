@@ -45,5 +45,13 @@ nonisolated struct ChatResponse: Codable, Sendable {
     let options: [ChatOption]?
     let isFinal: Bool
     let priorityActions: [PriorityAction]?
+    let looksGenerating: Bool?
+
+    // Final turn: the shopping list with real products and nearby stores
+    var shoppingList: [ShoppingItemDTO]? = nil
+    var stores: [StoreDTO]? = nil
+    var totalMxn: Double? = nil
+    var locationKnown: Bool? = nil
+    var matrixAvailable: Bool? = nil
 }
 #endif

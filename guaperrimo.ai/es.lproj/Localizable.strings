@@ -36,3 +36,60 @@
 "error_retry" = "Intentar de nuevo";
 "error_generic" = "Algo salio mal. Intenta de nuevo.";
 "voice_error" = "No te entendi. Intenta de nuevo.";
+
+/* Try-On */
+"tryon_button" = "Ver como me quedaria";
+"tryon_loading" = "Generando prueba virtual...";
+"tryon_cancel" = "Cancelar";
+"tryon_done" = "Listo";
+"tryon_title" = "Prueba virtual";
+"tryon_before" = "Antes";
+"tryon_after" = "Despues";
+"tryon_mode_side" = "Lado a lado";
+"tryon_mode_slider" = "Deslizar";
+"tryon_error_title" = "No pudimos generar la prueba";
+"tryon_retry" = "Intentar de nuevo";
+"tryon_back" = "Volver a recomendaciones";
+"tryon_progress_1" = "Buscando la prenda perfecta...";
+"tryon_progress_2" = "Ajustando a tu silueta...";
+"tryon_progress_3" = "Casi listo...";
+"tryon_progress_4" = "Ultimos detalles...";
+
+/* Looks */
+"looks_preparing" = "Generando tus looks...";
+"looks_first_ready" = "Tu primer look esta listo!";
+"looks_generating" = "Generando este look...";
+"looks_failed_message" = "No pudimos generar este look";
+"looks_retry" = "Intentar de nuevo";
+"looks_compare" = "Comparar";
+"looks_pieces" = "Ver prendas";
+"looks_pieces_title" = "Prendas";
+"looks_carousel_title" = "Tus Looks";
+"looks_timeout_slow" = "Tardando mas de lo esperado...";
+"looks_timeout_retry" = "Seguimos trabajando. Puedes revisar mas tarde.";
+
+/* Style Mirror */
+"mirror_title" = "Tu Espejo de Estilo";
+"mirror_original" = "Original";
+"mirror_swipe_hint" = "Desliza para explorar looks";
+"mirror_generating" = "Generando tu look...";
+
+/* Mi lista */
+"shopping_save" = "Me gustó, guardar mi lista";
+"shopping_saved" = "Lista guardada";
+"shopping_view" = "Ver mi lista";
+"shopping_title" = "Mi lista";
+"shopping_empty" = "Todavía no has guardado una lista. Cuando te guste una recomendación, guárdala y aquí la tendrás para ir de compras.";
+"shopping_no_product" = "No encontramos un producto exacto; usa la descripción para buscarlo en tienda.";
+"shopping_buy" = "Comprar";
+"shopping_directions" = "Cómo llegar";
+"shopping_online" = "En línea";
+"shopping_stores_title" = "Tiendas cerca con algo de tu lista";
+"shopping_total" = "Total aproximado";
+"shopping_saved_on" = "Guardada el";
+"shopping_mark" = "Marcar como comprado";
+"slot_upper_body" = "Arriba";
+"slot_outerwear" = "Encima";
+"slot_lower_body" = "Abajo";
+"slot_footwear" = "Calzado";
+"slot_accessory" = "Accesorio";

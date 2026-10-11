@@ -12,8 +12,10 @@ struct ConversationView: View {
     @State private var isHoldingMic = false
     @Environment(\.dismiss) private var dismiss
 
-    init(sessionId: String, imageUrl: String) {
-        _viewModel = State(initialValue: ConversationViewModel(sessionId: sessionId, imageUrl: imageUrl))
+    init(sessionId: String, imageUrl: String, forceStyleMirror: Bool = false) {
+        let vm = ConversationViewModel(sessionId: sessionId, imageUrl: imageUrl)
+        vm.forceStyleMirror = forceStyleMirror
+        _viewModel = State(initialValue: vm)
     }
 
     var body: some View {
@@ -29,6 +31,15 @@ struct ConversationView: View {
 
                 Spacer()
             }
+        }
+        .fullScreenCover(isPresented: $viewModel.showTryOn) {
+            TryOnContainerView(viewModel: viewModel)
+        }
+        .fullScreenCover(isPresented: $viewModel.showLookCarousel) {
+            StyleMirrorView(viewModel: viewModel)
+        }
+        .sheet(isPresented: $viewModel.showShoppingList) {
+            ShoppingListView()
         }
         .onAppear {
             viewModel.speechService.requestAuthorization()
@@ -103,8 +114,22 @@ struct ConversationView: View {
 
                     if !viewModel.priorityActions.isEmpty {
                         ForEach(viewModel.priorityActions) { action in
-                            PriorityActionCardView(action: action)
+                            PriorityActionCardView(action: action) {
+                                viewModel.requestTryOn(for: action)
+                            }
                         }
+                    }
+
+                    LookIndicatorView(
+                        lookState: viewModel.lookState,
+                        readyCount: viewModel.readyLooksCount,
+                        totalCount: viewModel.totalLooksCount,
+                        timeoutMessage: viewModel.lookTimeoutMessage,
+                        onTap: { viewModel.openLookCarousel() }
+                    )
+
+                    if !viewModel.shoppingList.isEmpty {
+                        shoppingListActions
                     }
                 }
                 .padding(.horizontal, 24)
@@ -137,6 +162,36 @@ struct ConversationView: View {
             }
             .transition(.opacity)
         }
+    }
+
+    // MARK: - Shopping list
+
+    private var shoppingListActions: some View {
+        VStack(spacing: 10) {
+            Button {
+                if !viewModel.listSaved {
+                    viewModel.saveShoppingList()
+                }
+                viewModel.showShoppingList = true
+            } label: {
+                Label(
+                    viewModel.listSaved ? String(localized: "shopping_view") : String(localized: "shopping_save"),
+                    systemImage: viewModel.listSaved ? "bag.fill" : "heart.fill"
+                )
+                .font(.headline)
+                .foregroundStyle(.black)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(.white, in: Capsule())
+            }
+
+            if viewModel.listSaved {
+                Text(String(localized: "shopping_saved"))
+                    .font(.caption)
+                    .foregroundStyle(.green)
+            }
+        }
+        .padding(.top, 8)
     }
 
     // MARK: - Message text

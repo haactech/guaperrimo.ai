@@ -8,6 +8,7 @@ import SwiftUI
 
 struct PriorityActionCardView: View {
     let action: PriorityAction
+    var onTryOn: (() -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -23,6 +24,27 @@ struct PriorityActionCardView: View {
             HStack(spacing: 8) {
                 badge(label: "Impacto: \(action.impact)", color: impactColor)
                 badge(label: "Esfuerzo: \(action.effort)", color: effortColor)
+            }
+
+            if let onTryOn {
+                Button {
+                    onTryOn()
+                } label: {
+                    Label(String(localized: "tryon_button"), systemImage: "tshirt.fill")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(
+                            LinearGradient(
+                                colors: [.purple, .blue],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ),
+                            in: Capsule()
+                        )
+                }
+                .padding(.top, 4)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
