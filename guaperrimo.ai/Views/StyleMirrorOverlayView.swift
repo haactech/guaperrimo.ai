@@ -17,6 +17,7 @@ struct StyleMirrorOverlayView: View {
     let onClose: () -> Void
     let onCompare: () -> Void
     let onPieces: () -> Void
+    let onList: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -29,6 +30,15 @@ struct StyleMirrorOverlayView: View {
                         .frame(width: 36, height: 36)
                         .background(Color.white.opacity(0.1), in: Circle())
                 }
+
+                Button(action: onList) {
+                    Image(systemName: "bag.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.7))
+                        .frame(width: 36, height: 36)
+                        .background(Color.white.opacity(0.1), in: Circle())
+                }
+                .accessibilityLabel(String(localized: "shopping_title"))
 
                 Spacer()
 

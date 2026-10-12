@@ -52,7 +52,7 @@ struct LookCarouselView: View {
         }
         .sheet(isPresented: $viewModel.showPieceDetail) {
             if let look = viewModel.currentLook, !look.pieces.isEmpty {
-                LookPieceSheet(pieces: look.pieces)
+                LookPieceSheet(pieces: look.pieces, onSave: { viewModel.saveLook(look) })
             }
         }
     }

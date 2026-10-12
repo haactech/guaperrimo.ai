@@ -77,6 +77,7 @@ nonisolated struct SavedShoppingList: Codable, Sendable, Equatable {
     let stores: [StoreDTO]
     let totalMxn: Double
     var purchased: Set<String>
+    var liked: Bool? = nil
 
     func store(for product: ProductDTO) -> StoreDTO? {
         guard let ref = product.nearbyStore else { return nil }

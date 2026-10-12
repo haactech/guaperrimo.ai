@@ -93,3 +93,8 @@
 "slot_lower_body" = "Abajo";
 "slot_footwear" = "Calzado";
 "slot_accessory" = "Accesorio";
+
+"shopping_like" = "Me gustó este outfit";
+"shopping_liked" = "Guardado como favorito";
+"shopping_save_look" = "Guardar este look en mi lista";
+"shopping_look_saved" = "Look guardado";

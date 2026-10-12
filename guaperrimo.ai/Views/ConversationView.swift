@@ -167,28 +167,36 @@ struct ConversationView: View {
     // MARK: - Shopping list
 
     private var shoppingListActions: some View {
-        VStack(spacing: 10) {
+        let liked = ShoppingListStore.shared.current?.liked == true
+        return VStack(spacing: 10) {
             Button {
-                if !viewModel.listSaved {
-                    viewModel.saveShoppingList()
-                }
                 viewModel.showShoppingList = true
             } label: {
-                Label(
-                    viewModel.listSaved ? String(localized: "shopping_view") : String(localized: "shopping_save"),
-                    systemImage: viewModel.listSaved ? "bag.fill" : "heart.fill"
-                )
-                .font(.headline)
-                .foregroundStyle(.black)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(.white, in: Capsule())
+                Label(String(localized: "shopping_view"), systemImage: "bag.fill")
+                    .font(.headline)
+                    .foregroundStyle(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(.white, in: Capsule())
             }
 
-            if viewModel.listSaved {
-                Text(String(localized: "shopping_saved"))
-                    .font(.caption)
+            if liked {
+                Text(String(localized: "shopping_liked"))
+                    .font(.subheadline)
                     .foregroundStyle(.green)
+            } else {
+                Button {
+                    ShoppingListStore.shared.markLiked()
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                } label: {
+                    Label(String(localized: "shopping_like"), systemImage: "heart.fill")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 10)
+                        .background(Color.white.opacity(0.1), in: Capsule())
+                        .overlay(Capsule().stroke(Color.white.opacity(0.2), lineWidth: 1))
+                }
             }
         }
         .padding(.top, 8)

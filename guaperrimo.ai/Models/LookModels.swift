@@ -30,6 +30,12 @@ nonisolated struct LookPieceDTO: Codable, Sendable {
     let slot: String
     let description: String
     let category: String
+    var productId: String? = nil
+    var productName: String? = nil
+    var productImageUrl: String? = nil
+    var productLink: String? = nil
+    var price: Double? = nil
+    var store: String? = nil
 }
 
 nonisolated struct LookResultDTO: Codable, Sendable {
@@ -77,6 +83,9 @@ struct LookPieceItem: Identifiable, Equatable {
     let productName: String?
     let productImageUrl: String?
     let tryonImageUrl: String?
+    var productLink: String? = nil
+    var price: Double? = nil
+    var store: String? = nil
 }
 
 // MARK: - Style Mirror Item

@@ -45,6 +45,14 @@ final class ShoppingListStore {
         persist()
     }
 
+    func markLiked() {
+        guard var list = current else { return }
+        list.liked = true
+        current = list
+        persist()
+        logger.info("❤️ Shopping list marked as liked")
+    }
+
     func clear() {
         current = nil
         try? FileManager.default.removeItem(at: fileURL)

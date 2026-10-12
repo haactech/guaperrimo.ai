@@ -34,6 +34,7 @@ final class ConversationViewModel {
     var totalMxn: Double = 0
     var listSaved: Bool = false
     var showShoppingList: Bool = false
+    var showShoppingListInMirror: Bool = false // the mirror is a full-screen cover, so it owns its own sheet
 
     // Try-on overlay state
     var tryOnState: TryOnState = .idle
@@ -202,6 +203,15 @@ final class ConversationViewModel {
         totalMxn = response.totalMxn ?? 0
         listSaved = false
 
+        if response.isFinal {
+            if shoppingList.isEmpty {
+                logger.warning("Final response has no shopping list")
+            } else {
+                saveShoppingList()
+                logger.info("Auto-saved shopping list — items: \(self.shoppingList.count, privacy: .public), stores: \(self.stores.count, privacy: .public)")
+            }
+        }
+
         // Speak the message
         state = .speaking
         isSpeaking = true
@@ -239,6 +249,47 @@ final class ConversationViewModel {
         ShoppingListStore.shared.save(list)
         listSaved = true
         UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+
+    /// Saves one Style Mirror look (its products) as the user's shopping list.
+    func saveLook(_ look: LookItem) {
+        var items: [ShoppingItemDTO] = []
+        for piece in look.pieces {
+            guard let productId = piece.productId else { continue }
+            let product = shoppingList.lazy.flatMap(\.products).first { $0.id == productId }
+                ?? ProductDTO(
+                    id: productId,
+                    title: piece.productName ?? piece.slotDescription,
+                    store: piece.store ?? "",
+                    price: piece.price ?? 0,
+                    currency: "MXN",
+                    link: piece.productLink,
+                    thumbnail: piece.productImageUrl,
+                    largeImage: nil,
+                    delivery: nil,
+                    availability: nil,
+                    nearbyStore: nil
+                )
+            items.append(ShoppingItemDTO(slot: piece.slot, description: piece.slotDescription, why: nil, priority: nil, products: [product]))
+        }
+        guard !items.isEmpty else {
+            logger.warning("Look \(look.id, privacy: .public) has no products to save")
+            return
+        }
+        let total = items.flatMap(\.products).reduce(0) { $0 + $1.price }
+        let list = SavedShoppingList(
+            sessionId: sessionId,
+            savedAt: Date(),
+            summary: look.name + ": " + look.description,
+            items: items,
+            stores: stores,
+            totalMxn: total,
+            purchased: []
+        )
+        ShoppingListStore.shared.save(list)
+        listSaved = true
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        logger.info("Saved look \(look.id, privacy: .public) — items: \(items.count, privacy: .public)")
     }
 
     // MARK: - Try-on
@@ -363,10 +414,13 @@ final class ConversationViewModel {
                     slot: lookPiece.slot,
                     slotDescription: lookPiece.description,
                     category: lookPiece.category,
-                    productId: resultPiece?.productId,
-                    productName: resultPiece?.productName,
-                    productImageUrl: resultPiece?.productImageUrl,
-                    tryonImageUrl: resultPiece?.tryonImageUrl
+                    productId: lookPiece.productId ?? resultPiece?.productId,
+                    productName: lookPiece.productName ?? resultPiece?.productName,
+                    productImageUrl: lookPiece.productImageUrl ?? resultPiece?.productImageUrl,
+                    tryonImageUrl: resultPiece?.tryonImageUrl,
+                    productLink: lookPiece.productLink,
+                    price: lookPiece.price,
+                    store: lookPiece.store
                 )
             }
 
