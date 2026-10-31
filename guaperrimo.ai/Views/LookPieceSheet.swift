@@ -83,7 +83,7 @@ struct LookPieceSheet: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white)
 
-                Text(piece.category.replacingOccurrences(of: "_", with: " ").capitalized)
+                Text(slotLabel(piece.category))
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.5))
 
