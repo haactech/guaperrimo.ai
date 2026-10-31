@@ -18,8 +18,9 @@
 
 /* Photo Preview */
 "retake" = "Retake";
-"save_photo" = "Save";
-"photo_saved" = "Photo saved";
+"analyze_outfit" = "Analyze my outfit";
+"continue_session" = "Continue session";
+"upload_failed" = "We couldn't upload the photo. Check your connection and try again.";
 
 /* Camera Permission */
 "camera_permission_title" = "Camera Access";
