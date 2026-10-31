@@ -42,7 +42,6 @@
 
 /* Try-On */
 "tryon_button" = "See how it looks on me";
-"tryon_loading" = "Generating virtual try-on…";
 "tryon_cancel" = "Cancel";
 "tryon_done" = "Done";
 "tryon_title" = "Virtual try-on";
@@ -61,10 +60,6 @@
 /* Looks */
 "looks_preparing" = "Generating your looks…";
 "looks_first_ready" = "Your first look is ready!";
-"looks_generating" = "Generating this look…";
-"looks_failed_message" = "We couldn't generate this look";
-"looks_retry" = "Try again";
-"looks_compare" = "Compare";
 "looks_pieces" = "See garments";
 "looks_pieces_title" = "Garments";
 "looks_carousel_title" = "Your Looks";
@@ -74,12 +69,9 @@
 /* Style Mirror */
 "mirror_title" = "Your Style Mirror";
 "mirror_original" = "Original";
-"mirror_swipe_hint" = "Swipe to explore looks";
 "mirror_generating" = "Generating your look…";
 
 /* My list */
-"shopping_save" = "I like it, save my list";
-"shopping_saved" = "List saved";
 "shopping_view" = "See my list";
 "shopping_title" = "My list";
 "shopping_empty" = "You haven't saved a list yet. When you like a recommendation, save it and it will be here for your shopping trip.";

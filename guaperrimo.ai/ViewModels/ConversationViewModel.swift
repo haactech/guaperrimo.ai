@@ -502,12 +502,5 @@ final class ConversationViewModel {
             lookState = .ready
         }
     }
-
-    func retryLook(at index: Int) {
-        // Re-trigger polling if stopped
-        if lookPollingTask == nil {
-            startLookPolling()
-        }
-    }
 }
 #endif
