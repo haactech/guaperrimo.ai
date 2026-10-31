@@ -28,6 +28,8 @@
 
 /* Conversation */
 "thinking" = "Analizando tu estilo…";
+"thinking_first" = "Mirando tu outfit…";
+"thinking_next" = "Pensando…";
 "voice_hold_hint" = "Mantén presionado para hablar";
 "voice_listening" = "Escuchando…";
 "voice_send" = "Enviar";

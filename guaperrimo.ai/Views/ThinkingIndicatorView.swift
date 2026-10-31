@@ -6,11 +6,15 @@
 #if os(iOS)
 import SwiftUI
 
+/// Three pulsing dots with a short status line underneath, centered in its container.
+/// Pass a different `message` per phase ("Mirando tu outfit…", "Pensando…").
 struct ThinkingIndicatorView: View {
+    var message: String = String(localized: "thinking")
+
     @State private var dotScale: [CGFloat] = [0.5, 0.5, 0.5]
 
     var body: some View {
-        HStack(spacing: 16) {
+        VStack(spacing: 16) {
             HStack(spacing: 6) {
                 ForEach(0..<3, id: \.self) { index in
                     Circle()
@@ -23,13 +27,14 @@ struct ThinkingIndicatorView: View {
             .padding(.vertical, 12)
             .background(Color.white.opacity(0.15), in: RoundedRectangle(cornerRadius: 16))
 
-            Text(String(localized: "thinking"))
-                .font(.caption)
-                .foregroundStyle(.white.opacity(0.6))
-
-            Spacer()
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(.white.opacity(0.7))
+                .multilineTextAlignment(.center)
         }
-        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 32)
+        .accessibilityElement(children: .combine)
         .onAppear { startAnimation() }
     }
 
