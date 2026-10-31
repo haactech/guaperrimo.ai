@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>guaperrimo.ai necesita acceso a la red local para enviar fotos al servidor de desarrollo.</string>
+	<string>guaperrimo.ai necesita acceso a la red local para enviar tus fotos al servidor de análisis.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_http._tcp</string>
@@ -16,6 +16,6 @@
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>guaperrimo.ai usa reconocimiento de voz para conversar con tu estilista AI.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>guaperrimo.ai necesita el microfono para entrada de voz.</string>
+	<string>guaperrimo.ai necesita el micrófono para entrada de voz.</string>
 </dict>
 </plist>

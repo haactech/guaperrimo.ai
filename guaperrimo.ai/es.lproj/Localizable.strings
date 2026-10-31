@@ -14,7 +14,7 @@
 "stay_still" = "Quédate quieto…";
 
 /* Auto-capture */
-"hold_still" = "No te muevas...";
+"hold_still" = "No te muevas…";
 
 /* Photo Preview */
 "retake" = "Repetir";
@@ -27,52 +27,52 @@
 "open_settings" = "Abrir Ajustes";
 
 /* Conversation */
-"thinking" = "Analizando tu estilo...";
-"voice_hold_hint" = "Manten presionado para hablar";
-"voice_listening" = "Escuchando...";
+"thinking" = "Analizando tu estilo…";
+"voice_hold_hint" = "Mantén presionado para hablar";
+"voice_listening" = "Escuchando…";
 "voice_send" = "Enviar";
 "voice_retry" = "Repetir";
-"mic_denied" = "guaperrimo.ai necesita acceso al microfono. Activalo en Ajustes.";
+"mic_denied" = "guaperrimo.ai necesita acceso al micrófono. Actívalo en Ajustes.";
 "error_retry" = "Intentar de nuevo";
-"error_generic" = "Algo salio mal. Intenta de nuevo.";
-"voice_error" = "No te entendi. Intenta de nuevo.";
+"error_generic" = "Algo salió mal. Intenta de nuevo.";
+"voice_error" = "No te entendí. Intenta de nuevo.";
 
 /* Try-On */
-"tryon_button" = "Ver como me quedaria";
-"tryon_loading" = "Generando prueba virtual...";
+"tryon_button" = "Ver cómo me quedaría";
+"tryon_loading" = "Generando prueba virtual…";
 "tryon_cancel" = "Cancelar";
 "tryon_done" = "Listo";
 "tryon_title" = "Prueba virtual";
 "tryon_before" = "Antes";
-"tryon_after" = "Despues";
+"tryon_after" = "Después";
 "tryon_mode_side" = "Lado a lado";
 "tryon_mode_slider" = "Deslizar";
 "tryon_error_title" = "No pudimos generar la prueba";
 "tryon_retry" = "Intentar de nuevo";
 "tryon_back" = "Volver a recomendaciones";
-"tryon_progress_1" = "Buscando la prenda perfecta...";
-"tryon_progress_2" = "Ajustando a tu silueta...";
-"tryon_progress_3" = "Casi listo...";
-"tryon_progress_4" = "Ultimos detalles...";
+"tryon_progress_1" = "Buscando la prenda perfecta…";
+"tryon_progress_2" = "Ajustando a tu silueta…";
+"tryon_progress_3" = "Casi listo…";
+"tryon_progress_4" = "Últimos detalles…";
 
 /* Looks */
-"looks_preparing" = "Generando tus looks...";
-"looks_first_ready" = "Tu primer look esta listo!";
-"looks_generating" = "Generando este look...";
+"looks_preparing" = "Generando tus looks…";
+"looks_first_ready" = "¡Tu primer look está listo!";
+"looks_generating" = "Generando este look…";
 "looks_failed_message" = "No pudimos generar este look";
 "looks_retry" = "Intentar de nuevo";
 "looks_compare" = "Comparar";
 "looks_pieces" = "Ver prendas";
 "looks_pieces_title" = "Prendas";
 "looks_carousel_title" = "Tus Looks";
-"looks_timeout_slow" = "Tardando mas de lo esperado...";
-"looks_timeout_retry" = "Seguimos trabajando. Puedes revisar mas tarde.";
+"looks_timeout_slow" = "Tardando más de lo esperado…";
+"looks_timeout_retry" = "Seguimos trabajando. Puedes revisar más tarde.";
 
 /* Style Mirror */
 "mirror_title" = "Tu Espejo de Estilo";
 "mirror_original" = "Original";
 "mirror_swipe_hint" = "Desliza para explorar looks";
-"mirror_generating" = "Generando tu look...";
+"mirror_generating" = "Generando tu look…";
 
 /* Mi lista */
 "shopping_save" = "Me gustó, guardar mi lista";
