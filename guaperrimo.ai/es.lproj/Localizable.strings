@@ -98,3 +98,23 @@
 "shopping_liked" = "Guardado como favorito";
 "shopping_save_look" = "Guardar este look en mi lista";
 "shopping_look_saved" = "Look guardado";
+
+/* Style preview */
+"preview_title" = "Tu estilo";
+"preview_color_season" = "Colorimetría";
+"preview_palette" = "Tu paleta";
+"preview_avoid" = "Evita";
+"preview_ideas_title" = "Ideas para ti";
+"preview_ideas_hint" = "Toca las que te gusten. Solo buscaremos esas.";
+"preview_slot_accessories" = "Accesorios";
+"preview_fit" = "Corte";
+"preview_reference" = "Foto de referencia";
+"preview_price_from" = "Desde";
+"preview_price_up_to" = "Hasta";
+"preview_comment_title" = "¿Algo que quieras ajustar?";
+"preview_comment_placeholder" = "Ej. algo más casual, sin colores tan fuertes…";
+"preview_send" = "Buscar estas prendas (%d)";
+"preview_send_comment" = "Enviar a tu estilista";
+"preview_send_error" = "No pudimos enviar tu selección. Intenta de nuevo.";
+"preview_open" = "Ver mis ideas";
+"preview_close" = "Cerrar";

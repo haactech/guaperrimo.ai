@@ -98,3 +98,23 @@
 "shopping_liked" = "Saved as favorite";
 "shopping_save_look" = "Save this look to my list";
 "shopping_look_saved" = "Look saved";
+
+/* Style preview */
+"preview_title" = "Your style";
+"preview_color_season" = "Color season";
+"preview_palette" = "Your palette";
+"preview_avoid" = "Avoid";
+"preview_ideas_title" = "Ideas for you";
+"preview_ideas_hint" = "Tap the ones you like. We'll only search for those.";
+"preview_slot_accessories" = "Accessories";
+"preview_fit" = "Fit";
+"preview_reference" = "Reference photo";
+"preview_price_from" = "From";
+"preview_price_up_to" = "Up to";
+"preview_comment_title" = "Anything you'd like to change?";
+"preview_comment_placeholder" = "E.g. something more casual, softer colors…";
+"preview_send" = "Search these pieces (%d)";
+"preview_send_comment" = "Send to your stylist";
+"preview_send_error" = "We couldn't send your picks. Try again.";
+"preview_open" = "See my ideas";
+"preview_close" = "Close";

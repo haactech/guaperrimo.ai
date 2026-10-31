@@ -36,6 +36,24 @@ final class ConversationViewModel {
     var showShoppingList: Bool = false
     var showShoppingListInMirror: Bool = false // the mirror is a full-screen cover, so it owns its own sheet
 
+    // Style preview (input_mode "preview"): brief + garment ideas the user picks from
+    var direction: StyleDirectionDTO? = nil
+    var selectedIdeaIds: Set<String> = []
+    var previewComment: String = ""
+    var showStylePreview: Bool = false
+    var isSendingSelection: Bool = false
+    var previewError: String? = nil
+
+    /// Selected ids in the order the stylist proposed them.
+    var orderedSelectedIdeaIds: [String] {
+        (direction?.ideas ?? []).map(\.id).filter { selectedIdeaIds.contains($0) }
+    }
+
+    var canSendIdeaSelection: Bool {
+        !isSendingSelection
+            && (!selectedIdeaIds.isEmpty || !previewComment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+    }
+
     // Try-on overlay state
     var tryOnState: TryOnState = .idle
     var showTryOn: Bool = false
@@ -170,6 +188,42 @@ final class ConversationViewModel {
         sendRequest(request)
     }
 
+    // MARK: - Style preview
+
+    func toggleIdea(_ id: String) {
+        guard !isSendingSelection else { return }
+        if selectedIdeaIds.contains(id) {
+            selectedIdeaIds.remove(id)
+        } else {
+            selectedIdeaIds.insert(id)
+        }
+    }
+
+    func openStylePreview() {
+        guard direction != nil else { return }
+        showStylePreview = true
+    }
+
+    /// Sends the ideas the user liked (and/or a comment) as an `idea_selection` turn.
+    /// The response is a normal chat turn handled by `handleResponse`.
+    func sendIdeaSelection(ids: [String], comment: String) {
+        let text = comment.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !ids.isEmpty || !text.isEmpty, !isSendingSelection else { return }
+
+        let rejected = (direction?.ideas ?? []).map(\.id).filter { !ids.contains($0) }
+        logger.info("Idea selection — round: \(self.direction?.round ?? 0, privacy: .public), selected: \(ids.joined(separator: ","), privacy: .public), rejected: \(rejected.joined(separator: ","), privacy: .public), comment: \(!text.isEmpty, privacy: .public)")
+
+        isSendingSelection = true
+        previewError = nil
+        state = .processing
+        let request = ChatRequest(
+            type: "idea_selection", imageUrl: nil, optionId: nil, transcript: nil,
+            selectedIdeas: ids.isEmpty ? nil : ids,
+            text: text.isEmpty ? nil : text
+        )
+        sendRequest(request)
+    }
+
     func retry() {
         startConversation()
     }
@@ -186,7 +240,14 @@ final class ConversationViewModel {
                 await handleResponse(response)
             } catch {
                 logger.error("Chat failed: \(String(describing: error), privacy: .public)")
-                state = .error(String(localized: "error_generic"))
+                if isSendingSelection {
+                    // Keep the preview open so the user can retry without losing his picks.
+                    isSendingSelection = false
+                    previewError = String(localized: "preview_send_error")
+                    state = .waitingForInput
+                } else {
+                    state = .error(String(localized: "error_generic"))
+                }
             }
         }
     }
@@ -202,6 +263,24 @@ final class ConversationViewModel {
         stores = response.stores ?? []
         totalMxn = response.totalMxn ?? 0
         listSaved = false
+
+        isSendingSelection = false
+        previewError = nil
+        if response.inputMode == .preview {
+            let direction = response.direction ?? StyleDirectionDTO(brief: nil, ideas: [])
+            if direction.ideas.isEmpty {
+                logger.warning("Preview response has no ideas — round: \(direction.round, privacy: .public)")
+            }
+            self.direction = direction
+            selectedIdeaIds = []
+            previewComment = ""
+            showStylePreview = true
+            logger.info("Showing style preview — round: \(direction.round, privacy: .public), ideas: \(direction.ideas.map(\.id).joined(separator: ","), privacy: .public)")
+        } else {
+            direction = nil
+            selectedIdeaIds = []
+            showStylePreview = false
+        }
 
         if response.isFinal {
             if shoppingList.isEmpty {
@@ -220,6 +299,10 @@ final class ConversationViewModel {
 
         // Brief pause after TTS
         try? await Task.sleep(for: .milliseconds(300))
+
+        // The user may have answered while the message was still being spoken
+        // (the preview stays interactive during TTS); don't clobber that state.
+        guard state == .speaking else { return }
 
         // Transition to final state
         if response.isFinal {
@@ -442,7 +525,7 @@ final class ConversationViewModel {
         lookAutoOpenTask = Task {
             try? await Task.sleep(for: .seconds(3))
             guard !Task.isCancelled else { return }
-            if !showLookCarousel && !showTryOn {
+            if !showLookCarousel && !showTryOn && !showStylePreview {
                 openLookCarousel()
             }
         }

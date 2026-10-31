@@ -41,6 +41,24 @@ struct ConversationView: View {
         .sheet(isPresented: $viewModel.showShoppingList) {
             ShoppingListView()
         }
+        .fullScreenCover(isPresented: $viewModel.showStylePreview) {
+            StylePreviewView(
+                message: viewModel.currentMessage,
+                direction: viewModel.direction ?? StyleDirectionDTO(brief: nil, ideas: []),
+                selectedIds: viewModel.selectedIdeaIds,
+                comment: $viewModel.previewComment,
+                isSending: viewModel.isSendingSelection,
+                errorMessage: viewModel.previewError,
+                onToggle: { viewModel.toggleIdea($0) },
+                onSend: {
+                    viewModel.sendIdeaSelection(
+                        ids: viewModel.orderedSelectedIdeaIds,
+                        comment: viewModel.previewComment
+                    )
+                },
+                onClose: { viewModel.showStylePreview = false }
+            )
+        }
         .onAppear {
             viewModel.speechService.requestAuthorization()
             viewModel.startConversation()
@@ -227,8 +245,25 @@ struct ConversationView: View {
             } else {
                 micInput
             }
+        case .preview:
+            previewReopenButton
         case .none:
             EmptyView()
+        }
+    }
+
+    // MARK: - Style preview (reopen after closing it)
+
+    private var previewReopenButton: some View {
+        Button {
+            viewModel.openStylePreview()
+        } label: {
+            Label(String(localized: "preview_open"), systemImage: "sparkles")
+                .font(.headline)
+                .foregroundStyle(.black)
+                .padding(.horizontal, 32)
+                .padding(.vertical, 14)
+                .background(.white, in: Capsule())
         }
     }
 
