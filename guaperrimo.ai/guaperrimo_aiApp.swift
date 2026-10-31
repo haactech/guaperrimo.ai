@@ -15,9 +15,9 @@ struct guaperrimo_aiApp: App {
         SentrySDK.start { options in
             options.dsn = "https://b51fb00335f95666f9864ce5d6aaee22@o4511023805759488.ingest.us.sentry.io/4511023807791104"
 
-            // Adds IP for users.
+            // Do not attach IP address or other PII to events.
             // For more information, visit: https://docs.sentry.io/platforms/apple/data-management/data-collected/
-            options.sendDefaultPii = true
+            options.sendDefaultPii = false
 
             // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
             // We recommend adjusting this value in production.
@@ -36,8 +36,6 @@ struct guaperrimo_aiApp: App {
             // Enable experimental logging features
             options.experimental.enableLogs = true
         }
-        // Remove the next line after confirming that your Sentry integration is working.
-        SentrySDK.capture(message: "This app uses Sentry! :)")
     }
     var body: some Scene {
         WindowGroup {
