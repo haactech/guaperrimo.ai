@@ -251,7 +251,7 @@ struct ConversationView: View {
             )
             .padding(.horizontal, DS.Space.l)
 
-            if canvasTakesVoice {
+            if isInteractive && canvasTakesVoice {
                 voiceArea
             }
         }
