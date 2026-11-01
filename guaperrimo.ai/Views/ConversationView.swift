@@ -57,7 +57,6 @@ struct ConversationView: View {
             )
         }
         .onAppear {
-            viewModel.speechService.requestAuthorization()
             viewModel.startConversation()
         }
         .onChange(of: viewModel.speechService.isFinalized) { _, finalized in
@@ -388,6 +387,11 @@ struct ConversationView: View {
                  : String(localized: "voice_hold_hint"))
                 .font(.caption)
                 .foregroundStyle(.white.opacity(0.6))
+        }
+        .onAppear {
+            // Mic + speech permission are requested when the user is about to speak,
+            // not at session start, so the alerts arrive with context.
+            viewModel.speechService.requestAuthorization()
         }
     }
 
