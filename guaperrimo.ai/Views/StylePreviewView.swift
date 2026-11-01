@@ -32,7 +32,7 @@ struct StylePreviewView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            TexturedBackground()
 
             VStack(spacing: 0) {
                 header
@@ -71,29 +71,11 @@ struct StylePreviewView: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack {
-            Button(action: onClose) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.7))
-                    .frame(width: 36, height: 36)
-                    .background(Color.white.opacity(0.1), in: Circle())
-            }
-            .accessibilityLabel(String(localized: "preview_close"))
-
-            Spacer()
-
-            Text(String(localized: "preview_title"))
-                .font(.headline)
-                .foregroundStyle(.white)
-
-            Spacer()
-
-            Color.clear.frame(width: 36, height: 36)
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .padding(.bottom, 12)
+        ScreenHeader(
+            title: String(localized: "preview_title"),
+            closeLabel: String(localized: "preview_close"),
+            onClose: onClose
+        )
     }
 
     // MARK: - Brief
@@ -260,7 +242,7 @@ struct StylePreviewView: View {
             if let errorMessage {
                 Text(errorMessage)
                     .font(.caption)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(DS.warning)
                     .multilineTextAlignment(.center)
             }
 
@@ -268,26 +250,18 @@ struct StylePreviewView: View {
                 ThinkingIndicatorView()
                     .frame(minHeight: 50)
             } else {
-                Button {
+                PrimaryButton(title: sendTitle, style: .light) {
                     commentFocused = false
                     onSend()
-                } label: {
-                    Text(sendTitle)
-                        .font(.headline)
-                        .foregroundStyle(.black)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(.white, in: Capsule())
                 }
                 .disabled(!canSend)
-                .opacity(canSend ? 1 : 0.4)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, DS.Space.inset)
             }
         }
         .padding(.top, 12)
         .padding(.bottom, 8)
         .background(
-            LinearGradient(colors: [.black.opacity(0), .black, .black], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [DS.bg.opacity(0), DS.bg, DS.bg], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
         )
     }
@@ -420,6 +394,7 @@ private struct IdeaCardView: View {
                         photoPlaceholder
                     default:
                         Color.white.opacity(0.08)
+                            .shimmer()
                     }
                 }
             } else {
