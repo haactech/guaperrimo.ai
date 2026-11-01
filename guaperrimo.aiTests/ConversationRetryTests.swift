@@ -70,3 +70,25 @@ struct ConversationRetryTests {
         #expect(ConversationViewModel.errorMessage(for: APIError.invalidResponse) == String(localized: "error_generic"))
     }
 }
+
+@MainActor
+struct ConversationHistoryTests {
+    @Test func historyRecordsStylistTurnsAndUserAnswersInOrder() async {
+        let viewModel = ConversationViewModel(
+            sessionId: "t", imageUrl: "https://x/y.jpg", stylistService: StubStylistService(), ttsService: InstantTTS()
+        )
+
+        viewModel.selectOption(ChatOption(id: "trabajo", label: "Trabajo"))
+        let deadline = ContinuousClock.now + .seconds(5)
+        while viewModel.history.count < 2 && ContinuousClock.now < deadline {
+            try? await Task.sleep(for: .milliseconds(25))
+        }
+
+        #expect(viewModel.history.map(\.role) == [.user, .stylist])
+        #expect(viewModel.history.first?.text == "Trabajo")
+
+        viewModel.sendUIAction(componentId: "budget", value: "2500")
+        #expect(viewModel.history.last?.role == .user)
+        #expect(viewModel.history.last?.text.contains("2500") == true)
+    }
+}

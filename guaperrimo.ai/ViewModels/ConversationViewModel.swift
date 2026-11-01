@@ -31,6 +31,8 @@ final class ConversationViewModel {
     var isSpeaking: Bool = false
     /// What the stylist is doing right now (from the stream); nil falls back to the generic text.
     var progressText: String? = nil
+    /// Everything said so far, oldest first (stylist messages and the user's answers).
+    var history: [ConversationEntry] = []
 
     // Shopping list (final turn)
     var shoppingList: [ShoppingItemDTO] = []
@@ -220,6 +222,7 @@ final class ConversationViewModel {
 
     func selectOption(_ option: ChatOption) {
         state = .processing
+        history.append(ConversationEntry(role: .user, text: option.label))
         let request = ChatRequest(type: "button_response", imageUrl: nil, optionId: option.id, transcript: nil)
         sendRequest(request)
     }
@@ -228,6 +231,10 @@ final class ConversationViewModel {
     /// Chips are answered through `selectOption`, the existing button path.
     func sendUIAction(componentId: String, value: String) {
         state = .processing
+        let answer = componentId == "budget"
+            ? String(format: String(localized: "history_budget"), value)
+            : "\(componentId): \(value)"
+        history.append(ConversationEntry(role: .user, text: answer))
         let request = ChatRequest(
             type: "ui_action", imageUrl: nil, optionId: nil, transcript: nil,
             componentId: componentId, value: value
@@ -238,6 +245,7 @@ final class ConversationViewModel {
     func sendVoiceResponse(_ transcript: String) {
         guard !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         state = .processing
+        history.append(ConversationEntry(role: .user, text: transcript.trimmingCharacters(in: .whitespacesAndNewlines)))
         let request = ChatRequest(type: "voice_response", imageUrl: nil, optionId: nil, transcript: transcript)
         sendRequest(request)
     }
@@ -277,6 +285,9 @@ final class ConversationViewModel {
         isSendingSelection = true
         previewError = nil
         state = .processing
+        var answer = ids.isEmpty ? "" : String(format: String(localized: "history_ideas"), ids.count)
+        if !text.isEmpty { answer += (answer.isEmpty ? "" : "\n") + text }
+        history.append(ConversationEntry(role: .user, text: answer))
         let request = ChatRequest(
             type: "idea_selection", imageUrl: nil, optionId: nil, transcript: nil,
             selectedIdeas: ids.isEmpty ? nil : ids,
@@ -370,6 +381,10 @@ final class ConversationViewModel {
         logger.info("Handling response — phase: \(response.phase), turn: \(response.turn), isFinal: \(response.isFinal)")
 
         currentMessage = response.message
+        let stylistLine = response.message.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !stylistLine.isEmpty {
+            history.append(ConversationEntry(role: .stylist, text: stylistLine))
+        }
         currentOptions = response.options ?? []
         currentInputMode = response.inputMode
         currentUI = response.ui ?? []

@@ -11,6 +11,7 @@ struct ConversationView: View {
     @State private var pendingTranscript: String?
     @State private var voiceHeardNothing = false
     @State private var showLeaveConfirm = false
+    @State private var showHistory = false
     @Environment(\.dismiss) private var dismiss
 
     private let imageUrl: String
@@ -71,6 +72,9 @@ struct ConversationView: View {
                 },
                 onClose: { viewModel.closeStylePreview() }
             )
+        }
+        .sheet(isPresented: $showHistory) {
+            ConversationHistoryView(entries: viewModel.history)
         }
         .confirmationDialog(String(localized: "leave_title"), isPresented: $showLeaveConfirm, titleVisibility: .visible) {
             Button(String(localized: "leave_confirm"), role: .destructive) { dismiss() }
@@ -202,17 +206,22 @@ struct ConversationView: View {
             }
 
         case .waitingForInput:
-            if hasCanvas {
-                canvasContent(isInteractive: !viewModel.isSpeaking)
-                    .transition(.opacity)
-            } else {
-                VStack(spacing: 32) {
-                    messageText
+            VStack(spacing: DS.Space.s) {
+                if hasCanvas {
+                    canvasContent(isInteractive: !viewModel.isSpeaking)
+                } else {
+                    VStack(spacing: 32) {
+                        messageText
 
-                    inputArea
+                        inputArea
+                    }
                 }
-                .transition(.opacity)
+
+                if viewModel.history.count >= 2 {
+                    TertiaryButton(title: String(localized: "history_open")) { showHistory = true }
+                }
             }
+            .transition(.opacity)
 
         case .finished:
             ScrollView {

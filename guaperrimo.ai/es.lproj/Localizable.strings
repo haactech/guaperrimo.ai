@@ -60,6 +60,10 @@
 "leave_title" = "¿Salir de la sesión? Perderás el análisis en curso.";
 "leave_confirm" = "Salir";
 "leave_cancel" = "Seguir aquí";
+"history_open" = "Ver conversación";
+"history_title" = "Conversación";
+"history_budget" = "Presupuesto: %@ MXN";
+"history_ideas" = "Ideas elegidas: %lld";
 "voice_error" = "No te entendí. Intenta de nuevo.";
 "progress_analyzing_photo" = "Mirando tu outfit…";
 "progress_finding_stores" = "Buscando tiendas cerca de ti…";
