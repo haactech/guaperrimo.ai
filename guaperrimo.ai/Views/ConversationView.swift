@@ -344,22 +344,8 @@ struct ConversationView: View {
     // MARK: - Shopping list
 
     private var shoppingListActions: some View {
-        let liked = ShoppingListStore.shared.current?.liked == true
-        return VStack(spacing: 10) {
-            PrimaryButton(title: String(localized: "shopping_view"), systemImage: "bag.fill", style: .light) {
-                viewModel.showShoppingList = true
-            }
-
-            if liked {
-                Text(String(localized: "shopping_liked"))
-                    .font(.subheadline)
-                    .foregroundStyle(DS.success)
-            } else {
-                SecondaryButton(title: String(localized: "shopping_like"), systemImage: "heart.fill") {
-                    ShoppingListStore.shared.markLiked()
-                    UINotificationFeedbackGenerator().notificationOccurred(.success)
-                }
-            }
+        PrimaryButton(title: String(localized: "shopping_view"), systemImage: "heart.fill", style: .light) {
+            viewModel.showShoppingList = true
         }
         .padding(.top, 8)
     }

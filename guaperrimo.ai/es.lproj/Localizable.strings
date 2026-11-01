@@ -96,7 +96,7 @@
 "mirror_generating" = "Generando tu look…";
 
 /* Mi lista */
-"shopping_view" = "Ver mi lista";
+"shopping_view" = "Mis looks";
 "shopping_title" = "Mis looks";
 "shopping_empty" = "Todavía no has guardado una lista. Cuando te guste una recomendación, guárdala y aquí la tendrás para ir de compras.";
 "shopping_no_product" = "No encontramos un producto exacto; usa la descripción para buscarlo en tienda.";
@@ -113,8 +113,6 @@
 "slot_footwear" = "Calzado";
 "slot_accessory" = "Accesorio";
 
-"shopping_like" = "Me gustó este outfit";
-"shopping_liked" = "Guardado como favorito";
 "mylooks_stores_near" = "%d tiendas cerca";
 "mylooks_store_near_one" = "1 tienda cerca";
 "mylooks_saved_toast" = "Guardado en Mis looks";

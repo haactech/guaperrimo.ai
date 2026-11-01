@@ -448,19 +448,18 @@ final class ConversationViewModel {
 
     // MARK: - Shopping list
 
-    /// Keeps the recommended products on the device as the user's shopping reference.
+    /// Keeps the stylist's whole plan in "Mis looks", with the user's own photo as its image.
     func saveShoppingList() {
         guard !shoppingList.isEmpty else { return }
-        let list = SavedShoppingList(
+        let look = SavedLook.fromRecommendation(
             sessionId: sessionId,
-            savedAt: Date(),
             summary: currentMessage,
             items: shoppingList,
             stores: stores,
             totalMxn: totalMxn,
-            purchased: []
+            originalImageUrl: userImageUrl
         )
-        ShoppingListStore.shared.save(list)
+        SavedLooksStore.shared.add(look)
         listSaved = true
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
