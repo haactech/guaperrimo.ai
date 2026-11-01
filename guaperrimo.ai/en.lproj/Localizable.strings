@@ -34,6 +34,7 @@
 "location_skip" = "Not now";
 
 /* Conversation */
+"session_title" = "Your stylist";
 "thinking" = "Analyzing your style…";
 "thinking_first" = "Looking at your outfit…";
 "thinking_next" = "Thinking…";

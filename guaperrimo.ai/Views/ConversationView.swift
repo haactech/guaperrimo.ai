@@ -133,9 +133,18 @@ struct ConversationView: View {
 
             Spacer()
 
-            Text("guaperrimo.ai")
-                .font(.headline)
-                .foregroundStyle(.white)
+            VStack(spacing: 4) {
+                Text(String(localized: "session_title"))
+                    .font(.headline)
+                    .foregroundStyle(.white)
+
+                if let label = viewModel.locationService.fix?.label {
+                    Label(label, systemImage: "mappin")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.6))
+                        .lineLimit(1)
+                }
+            }
 
             Spacer()
 
