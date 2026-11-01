@@ -25,7 +25,7 @@ struct ConversationView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            TexturedBackground()
 
             VStack(spacing: 0) {
                 header
@@ -94,7 +94,7 @@ struct ConversationView: View {
     private var photoLayout: some View {
         GeometryReader { geo in
             VStack(spacing: 16) {
-                SessionPhotoCard(image: image, imageUrl: imageUrl)
+                UserPhotoCard(image: image, url: imageUrl)
                     .overlay(alignment: .bottom) {
                         if viewModel.isSpeaking {
                             SpeakingPillView { viewModel.skipSpeaking() }
@@ -121,14 +121,8 @@ struct ConversationView: View {
 
     private var header: some View {
         HStack {
-            Button {
+            IconButton(systemName: "xmark", accessibilityLabel: String(localized: "preview_close")) {
                 dismiss()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.7))
-                    .frame(width: 36, height: 36)
-                    .background(Color.white.opacity(0.1), in: Circle())
             }
 
             Spacer()
@@ -141,18 +135,18 @@ struct ConversationView: View {
                 if let label = viewModel.locationService.fix?.label {
                     Label(label, systemImage: "mappin")
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.6))
+                        .foregroundStyle(DS.textTertiary)
                         .lineLimit(1)
                 }
             }
 
             Spacer()
 
-            Color.clear.frame(width: 36, height: 36)
+            HeaderSpacer()
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .padding(.bottom, 12)
+        .padding(.horizontal, DS.Space.m)
+        .padding(.top, DS.Space.xs)
+        .padding(.bottom, DS.Space.s)
     }
 
     // MARK: - Main content (state switch)
@@ -209,25 +203,19 @@ struct ConversationView: View {
         case .error(let message):
             VStack(spacing: 20) {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 40))
-                    .foregroundStyle(.orange)
+                    .font(.largeTitle)
+                    .foregroundStyle(DS.warning)
 
                 Text(message)
                     .font(.body)
-                    .foregroundStyle(.white.opacity(0.8))
+                    .foregroundStyle(DS.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
 
-                Button {
+                PrimaryButton(title: String(localized: "error_retry")) {
                     viewModel.retry()
-                } label: {
-                    Text(String(localized: "error_retry"))
-                        .font(.headline)
-                        .foregroundStyle(.black)
-                        .padding(.horizontal, 32)
-                        .padding(.vertical, 14)
-                        .background(.white, in: Capsule())
                 }
+                .padding(.horizontal, DS.Space.l)
             }
             .transition(.opacity)
         }
@@ -239,8 +227,8 @@ struct ConversationView: View {
     private var locationConsentView: some View {
         VStack(spacing: 20) {
             Image(systemName: "mappin.and.ellipse")
-                .font(.system(size: 40))
-                .foregroundStyle(.green)
+                .font(.largeTitle)
+                .foregroundStyle(DS.success)
 
             Text(String(localized: "location_consent_title"))
                 .font(.title3.weight(.semibold))
@@ -249,31 +237,17 @@ struct ConversationView: View {
 
             Text(String(localized: "location_consent_body"))
                 .font(.body)
-                .foregroundStyle(.white.opacity(0.75))
+                .foregroundStyle(DS.textSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
 
-            VStack(spacing: 12) {
-                Button {
+            VStack(spacing: DS.Space.s) {
+                PrimaryButton(title: String(localized: "location_allow"), systemImage: "location.fill") {
                     viewModel.allowLocation()
-                } label: {
-                    Label(String(localized: "location_allow"), systemImage: "location.fill")
-                        .font(.headline)
-                        .foregroundStyle(.black)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(.white, in: Capsule())
                 }
 
-                Button {
+                SecondaryButton(title: String(localized: "location_skip"), fullWidth: true) {
                     viewModel.skipLocation()
-                } label: {
-                    Text(String(localized: "location_skip"))
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.white.opacity(0.7))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(Color.white.opacity(0.1), in: Capsule())
                 }
             }
             .padding(.horizontal, 24)
@@ -286,33 +260,18 @@ struct ConversationView: View {
     private var shoppingListActions: some View {
         let liked = ShoppingListStore.shared.current?.liked == true
         return VStack(spacing: 10) {
-            Button {
+            PrimaryButton(title: String(localized: "shopping_view"), systemImage: "bag.fill", style: .light) {
                 viewModel.showShoppingList = true
-            } label: {
-                Label(String(localized: "shopping_view"), systemImage: "bag.fill")
-                    .font(.headline)
-                    .foregroundStyle(.black)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(.white, in: Capsule())
             }
 
             if liked {
                 Text(String(localized: "shopping_liked"))
                     .font(.subheadline)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(DS.success)
             } else {
-                Button {
+                SecondaryButton(title: String(localized: "shopping_like"), systemImage: "heart.fill") {
                     ShoppingListStore.shared.markLiked()
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
-                } label: {
-                    Label(String(localized: "shopping_like"), systemImage: "heart.fill")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 10)
-                        .background(Color.white.opacity(0.1), in: Capsule())
-                        .overlay(Capsule().stroke(Color.white.opacity(0.2), lineWidth: 1))
                 }
             }
         }
@@ -375,14 +334,9 @@ struct ConversationView: View {
                 Button {
                     viewModel.selectOption(option)
                 } label: {
-                    Text(option.label)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 12)
-                        .frame(minHeight: 44)
-                        .background(Color.white.opacity(0.15), in: Capsule())
-                        .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
+                    Chip(label: option.label)
+                        .frame(minHeight: DS.minTap)
+                        .contentShape(Capsule())
                 }
                 .disabled(viewModel.isSpeaking)
                 .opacity(viewModel.isSpeaking ? 0.4 : 1.0)
@@ -399,7 +353,7 @@ struct ConversationView: View {
             if isHoldingMic && !viewModel.speechService.transcript.isEmpty {
                 Text(viewModel.speechService.transcript)
                     .font(.body)
-                    .foregroundStyle(.white.opacity(0.8))
+                    .foregroundStyle(DS.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
                     .transition(.opacity)
@@ -419,7 +373,7 @@ struct ConversationView: View {
                 }
 
                 Image(systemName: isHoldingMic ? "mic.fill" : "mic")
-                    .font(.system(size: 30))
+                    .font(.title)
                     .foregroundStyle(isHoldingMic ? .red : .white)
             }
             .gesture(
@@ -444,7 +398,7 @@ struct ConversationView: View {
                  ? String(localized: "voice_listening")
                  : String(localized: "voice_hold_hint"))
                 .font(.caption)
-                .foregroundStyle(.white.opacity(0.6))
+                .foregroundStyle(DS.textTertiary)
         }
         .onAppear {
             // Mic + speech permission are requested when the user is about to speak,
@@ -463,36 +417,20 @@ struct ConversationView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
                 .padding(.vertical, 16)
-                .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+                .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.m))
                 .padding(.horizontal, 24)
 
             HStack(spacing: 16) {
                 // Retry button
-                Button {
+                SecondaryButton(title: String(localized: "voice_retry"), systemImage: "arrow.counterclockwise") {
                     pendingTranscript = nil
-                } label: {
-                    Label(String(localized: "voice_retry"), systemImage: "arrow.counterclockwise")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
-                        .frame(minHeight: 44)
-                        .background(Color.white.opacity(0.15), in: Capsule())
                 }
 
                 // Send button
-                Button {
+                PrimaryButton(title: String(localized: "voice_send"), systemImage: "paperplane.fill", style: .light) {
                     let text = transcript
                     pendingTranscript = nil
                     viewModel.sendVoiceResponse(text)
-                } label: {
-                    Label(String(localized: "voice_send"), systemImage: "paperplane.fill")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.black)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
-                        .frame(minHeight: 44)
-                        .background(.white, in: Capsule())
                 }
             }
         }
@@ -503,28 +441,21 @@ struct ConversationView: View {
     private func micErrorView(_ message: String) -> some View {
         VStack(spacing: 16) {
             Image(systemName: "mic.slash.fill")
-                .font(.system(size: 36))
-                .foregroundStyle(.orange)
+                .font(.largeTitle)
+                .foregroundStyle(DS.warning)
 
             Text(message)
                 .font(.body)
-                .foregroundStyle(.white.opacity(0.8))
+                .foregroundStyle(DS.textSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
 
-            Button {
+            PrimaryButton(title: String(localized: "open_settings"), systemImage: "gear", style: .light) {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
                 }
-            } label: {
-                Label(String(localized: "open_settings"), systemImage: "gear")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.black)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .frame(minHeight: 44)
-                    .background(.white, in: Capsule())
             }
+            .padding(.horizontal, DS.Space.l)
         }
     }
 }
