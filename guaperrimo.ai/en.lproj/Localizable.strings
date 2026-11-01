@@ -117,6 +117,9 @@
 "shopping_liked" = "Saved as favorite";
 "shopping_save_look" = "Save this look to my list";
 "shopping_look_saved" = "Look saved";
+"mylooks_stores_near" = "%d stores nearby";
+"mylooks_store_near_one" = "1 store nearby";
+"mylooks_default_plan_name" = "Your style plan";
 
 /* Style preview */
 "preview_title" = "Your style";
