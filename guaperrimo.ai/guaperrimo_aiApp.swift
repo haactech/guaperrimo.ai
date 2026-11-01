@@ -43,8 +43,10 @@ struct guaperrimo_aiApp: App {
             #if DEBUG
             // Full flow: camera → conversation → style mirror (all via LiveStylistService)
             CameraView()
+                .preferredColorScheme(.dark)
             #else
             CameraView()
+                .preferredColorScheme(.dark)
             #endif
             #else
             ContentView()
