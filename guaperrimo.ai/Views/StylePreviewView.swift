@@ -380,6 +380,7 @@ private struct IdeaCardView: View {
                     ChipsFlow(spacing: 6) {
                         ForEach(chips, id: \.self) { chip in
                             Text(chip)
+                                .lineLimit(1)
                                 .font(.caption2.weight(.medium))
                                 .foregroundStyle(DS.textSecondary)
                                 .padding(.horizontal, 8)
@@ -455,6 +456,7 @@ private struct IdeaCardView: View {
                 HStack(spacing: 5) {
                     SwatchCircle(swatch: swatch, size: 14)
                     Text(swatch.name)
+                        .lineLimit(1)
                         .font(.caption)
                         .foregroundStyle(DS.textSecondary)
                 }
@@ -543,12 +545,20 @@ private struct ChipsFlow: Layout {
         for row in arrange(maxWidth: bounds.width, subviews: subviews) {
             var x = bounds.minX
             for index in row.indices {
-                let size = subviews[index].sizeThatFits(.unspecified)
+                let size = measure(subviews[index], maxWidth: bounds.width)
                 subviews[index].place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
                 x += size.width + spacing
             }
             y += row.height + spacing
         }
+    }
+
+    /// Ideal size, but never wider than the row: a longer chip gets the full
+    /// width proposed and truncates (its text has `lineLimit(1)`).
+    private func measure(_ subview: LayoutSubview, maxWidth: CGFloat) -> CGSize {
+        let ideal = subview.sizeThatFits(.unspecified)
+        guard ideal.width > maxWidth, maxWidth.isFinite else { return ideal }
+        return subview.sizeThatFits(ProposedViewSize(width: maxWidth, height: nil))
     }
 
     private struct Row {
@@ -561,7 +571,7 @@ private struct ChipsFlow: Layout {
         var rows: [Row] = []
         var current = Row()
         for index in subviews.indices {
-            let size = subviews[index].sizeThatFits(.unspecified)
+            let size = measure(subviews[index], maxWidth: maxWidth)
             let needed = current.indices.isEmpty ? size.width : current.width + spacing + size.width
             if needed > maxWidth && !current.indices.isEmpty {
                 rows.append(current)
