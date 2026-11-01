@@ -411,6 +411,20 @@ Tests: iOS 40 de 41 (sigue fallando solo el externo de ElevenLabs); backend toda
 
 Qué falta para la sensación "OpenUI" completa (§9.5 paso B): streaming de la respuesta (speech primero, componentes conforme llegan). Decisiones del contrato v1 a revisar más adelante: `select` siempre `single`; el slider no tiene camino por voz; el backend sigue contando como rechazadas las ideas del preview que el usuario no vio (lado servidor); `product_card.link` abre el navegador; sin cruce entre `steps[].product_ids` y las tarjetas.
 
+### 6.4 Streaming, resto de la fase 2 y fase 3 del guardado (1 de noviembre de 2026, tercera ronda)
+
+Tres agentes en paralelo, revisados y encadenados a mano. Ramas: backend `streaming` (sobre `generative-ui`); iOS `ios-style-preview-fixes` → `ios-streaming-fase2` → `ios-saved-looks`.
+
+| Pieza | Rama | Commits | Qué entró |
+|-------|------|---------|-----------|
+| Streaming (backend) | `streaming` | `154f86b` … `900e060` (6) | `POST /session/{id}/chat/stream` por SSE: eventos `status` por etapa (`analyzing_photo`, `finding_stores`, `geocoding`, `thinking`, `searching_products` con la consulta, `proposing_preview`, `composing`), `turn` con la misma respuesta que `/chat`, `error` con el mismo código y mensaje; ping cada 10 s; `/chat` intacto. Paso B de §9.5 en su primera forma: progreso visible, no tokens. |
+| Streaming + fase 2 (iOS) | `ios-streaming-fase2` | `b688eab` … `cf9860a` (6) | Cliente SSE con parser probado y fallback a `/chat` cuando el backend no tiene el endpoint; texto de progreso en vivo en el indicador (S-2/S-4); reintentar reenvía el último turno y los errores dicen qué pasó: sin conexión, tardó demasiado, falló el servidor (S-9, S-10); confirmación antes de salir a mitad del análisis (S-11); micrófono por toque, aviso cuando no escuchó nada y envío automático a los 2 s cancelable (S-6, S-7); historial de la conversación en una hoja (S-3). |
+| Guardado (iOS, fase 3 parte 1) | `ios-saved-looks` | `0cd3538` … `ab531a8` (5) | `SavedLook` con imagen, prendas, productos, tiendas y comprados; `SavedLooksStore` con varios looks y migración de la lista vieja; **un solo corazón** en el Style Mirror que guarda el look con toast (L-1, G-1, G-2); el plan final se guarda solo como look con tu foto; pantalla "Mis looks" con pestañas Looks (cuadrícula, detalle, eliminar) y Compras (total arriba, agrupado por tienda cercana, "Ver producto" cuando el link es una búsqueda, comprados a "Ya lo tienes") (G-5, G-6, G-7, G-9, G-11); fuera `ShoppingListStore`, `ShoppingListView` y los otros dos botones de guardar. |
+
+Tests: iOS toda la suite salvo el externo de ElevenLabs; backend en verde con detector de carreras. Nada verificado visualmente todavía.
+
+Pendiente: streaming de tokens de la voz (requiere streaming del proveedor LLM y parseo parcial de la llamada a herramienta); doble toque sobre la imagen para guardar; quitar el corazón para des‑guardar; el backend sigue contando como rechazadas las ideas del preview que el usuario no vio; fase 4 (cámara con voz, preview espejado, onboarding, hogar con sesiones) completa; ícono de la app.
+
 ---
 
 ## 7. Cómo validar: pruebas en dispositivo y simulador
