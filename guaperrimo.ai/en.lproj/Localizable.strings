@@ -105,7 +105,10 @@
 "preview_palette" = "Your palette";
 "preview_avoid" = "Avoid";
 "preview_ideas_title" = "Ideas for you";
-"preview_ideas_hint" = "Tap the ones you like. We'll only search for those.";
+"preview_ideas_hint" = "Tap the ones you like in each row. We build complete outfits on your photo with them.";
+"preview_row_upper_body" = "Shirts and tees";
+"preview_row_lower_body" = "Pants";
+"preview_row_outerwear" = "Jackets and blazers";
 "preview_slot_accessories" = "Accessories";
 "preview_fit" = "Fit";
 "preview_reference" = "Reference photo";
@@ -113,7 +116,7 @@
 "preview_price_up_to" = "Up to";
 "preview_comment_title" = "Anything you'd like to change?";
 "preview_comment_placeholder" = "E.g. something more casual, softer colors…";
-"preview_send" = "Search these pieces (%d)";
+"preview_send" = "Build my outfits (%d)";
 "preview_send_comment" = "Send to your stylist";
 "preview_send_error" = "We couldn't send your picks. Try again.";
 "preview_open" = "See my ideas";

@@ -188,11 +188,17 @@ private nonisolated struct LenientIdea: Decodable, Sendable {
 
 // MARK: - Helpers
 
-nonisolated let previewSlotOrder = ["upper_body", "outerwear", "lower_body", "footwear", "accessory"]
+nonisolated let previewSlotOrder = ["upper_body", "lower_body", "outerwear", "footwear", "accessory"]
 
 /// Section title for a slot in the preview (plural for accessories).
 nonisolated func previewSlotTitle(_ slot: String) -> String {
-    slot == "accessory" ? String(localized: "preview_slot_accessories") : slotLabel(slot)
+    switch slot {
+    case "upper_body": return String(localized: "preview_row_upper_body")
+    case "lower_body": return String(localized: "preview_row_lower_body")
+    case "outerwear": return String(localized: "preview_row_outerwear")
+    case "accessory": return String(localized: "preview_slot_accessories")
+    default: return slotLabel(slot)
+    }
 }
 
 /// Formats an MXN amount with Mexican grouping: 1200 -> "1,200".

@@ -14,7 +14,6 @@ private let logger = Logger(subsystem: "ai.guaperrimo", category: "StylistServic
 
 protocol StylistService: Sendable {
     func chat(sessionId: String, request: ChatRequest) async throws -> ChatResponse
-    func tryOn(sessionId: String, request: TryOnRequest) async throws -> TryOnResponse
     func fetchLooks(sessionId: String) async throws -> LooksResponse
 }
 
@@ -31,17 +30,6 @@ struct LiveStylistService: StylistService {
             timeout: 180
         )
         logger.info("⬇️ Chat response — phase: \(response.phase), turn: \(response.turn), isFinal: \(response.isFinal)")
-        return response
-    }
-
-    func tryOn(sessionId: String, request: TryOnRequest) async throws -> TryOnResponse {
-        logger.info("⬆️ POST /session/\(sessionId)/tryon — action: \(request.actionId)")
-        let response: TryOnResponse = try await apiClient.postJSON(
-            path: "/session/\(sessionId)/tryon",
-            body: request,
-            timeout: 30
-        )
-        logger.info("⬇️ TryOn response — garment: \(response.garmentUsed)")
         return response
     }
 
@@ -169,14 +157,6 @@ struct StubStylistService: StylistService {
                 )
             }
         }
-    }
-
-    func tryOn(sessionId: String, request: TryOnRequest) async throws -> TryOnResponse {
-        try await Task.sleep(for: .seconds(8))
-        return TryOnResponse(
-            tryonImageUrl: "https://picsum.photos/400/600",
-            garmentUsed: request.garmentDescription
-        )
     }
 
     func chat(sessionId: String, request: ChatRequest) async throws -> ChatResponse {

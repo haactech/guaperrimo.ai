@@ -105,7 +105,10 @@
 "preview_palette" = "Tu paleta";
 "preview_avoid" = "Evita";
 "preview_ideas_title" = "Ideas para ti";
-"preview_ideas_hint" = "Toca las que te gusten. Solo buscaremos esas.";
+"preview_ideas_hint" = "Toca las que te gusten en cada fila. Con ellas armamos outfits completos sobre tu foto.";
+"preview_row_upper_body" = "Camisas y playeras";
+"preview_row_lower_body" = "Pantalones";
+"preview_row_outerwear" = "Chamarras y sacos";
 "preview_slot_accessories" = "Accesorios";
 "preview_fit" = "Corte";
 "preview_reference" = "Foto de referencia";
@@ -113,7 +116,7 @@
 "preview_price_up_to" = "Hasta";
 "preview_comment_title" = "¿Algo que quieras ajustar?";
 "preview_comment_placeholder" = "Ej. algo más casual, sin colores tan fuertes…";
-"preview_send" = "Buscar estas prendas (%d)";
+"preview_send" = "Armar mis outfits (%d)";
 "preview_send_comment" = "Enviar a tu estilista";
 "preview_send_error" = "No pudimos enviar tu selección. Intenta de nuevo.";
 "preview_open" = "Ver mis ideas";

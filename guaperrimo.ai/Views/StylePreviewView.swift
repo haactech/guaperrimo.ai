@@ -195,20 +195,29 @@ struct StylePreviewView: View {
                     .foregroundStyle(.white.opacity(0.6))
             }
 
+            // One row per garment of the outfit (shirts, pants, jackets),
+            // its alternatives side by side.
             ForEach(direction.ideasBySlot) { group in
                 VStack(alignment: .leading, spacing: 10) {
                     sectionLabel(previewSlotTitle(group.slot))
-                    ForEach(group.ideas) { idea in
-                        IdeaCardView(
-                            idea: idea,
-                            isSelected: selectedIds.contains(idea.id),
-                            onTap: {
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                onToggle(idea.id)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(alignment: .top, spacing: 12) {
+                            ForEach(group.ideas) { idea in
+                                IdeaCardView(
+                                    idea: idea,
+                                    isSelected: selectedIds.contains(idea.id),
+                                    onTap: {
+                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        onToggle(idea.id)
+                                    }
+                                )
+                                .frame(width: 180)
+                                .disabled(isSending)
                             }
-                        )
-                        .disabled(isSending)
+                        }
+                        .fixedSize(horizontal: false, vertical: true) // cards in a row share one height
                     }
+                    .scrollClipDisabled()
                 }
             }
         }
@@ -301,45 +310,43 @@ private struct IdeaCardView: View {
     var body: some View {
         Button(action: onTap) {
             VStack(alignment: .leading, spacing: 8) {
-                HStack(alignment: .top, spacing: 12) {
-                    referencePhoto
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(idea.garment)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .multilineTextAlignment(.leading)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        if !idea.colors.isEmpty {
-                            colorsRow
-                        }
-
-                        if !chips.isEmpty {
-                            ChipsFlow(spacing: 6) {
-                                ForEach(chips, id: \.self) { chip in
-                                    Text(chip)
-                                        .font(.caption2.weight(.medium))
-                                        .foregroundStyle(.white.opacity(0.85))
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 4)
-                                        .background(Color.white.opacity(0.12), in: Capsule())
-                                }
-                            }
-                        }
-
-                        if let price = idea.priceRangeLabel {
-                            Text(price)
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.white)
-                        }
+                referencePhoto
+                    .overlay(alignment: .topTrailing) {
+                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                            .font(.system(size: 24))
+                            .foregroundStyle(isSelected ? .green : .white)
+                            .background(Circle().fill(.black.opacity(0.35)))
+                            .padding(8)
                     }
 
-                    Spacer(minLength: 0)
+                Text(idea.garment)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
 
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 24))
-                        .foregroundStyle(isSelected ? .green : .white.opacity(0.4))
+                if !idea.colors.isEmpty {
+                    colorsRow
+                }
+
+                if !chips.isEmpty {
+                    ChipsFlow(spacing: 6) {
+                        ForEach(chips, id: \.self) { chip in
+                            Text(chip)
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(.white.opacity(0.85))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.white.opacity(0.12), in: Capsule())
+                        }
+                    }
+                }
+
+                if let price = idea.priceRangeLabel {
+                    Text(price)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white)
                 }
 
                 if let why = idea.why, !why.isEmpty {
@@ -347,17 +354,21 @@ private struct IdeaCardView: View {
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.7))
                         .multilineTextAlignment(.leading)
+                        .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
+
+                Spacer(minLength: 0)
 
                 if idea.reference != nil {
                     Text(referenceCaption)
                         .font(.caption2)
                         .foregroundStyle(.white.opacity(0.45))
+                        .lineLimit(1)
                 }
             }
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(10)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(isSelected ? Color.green.opacity(0.12) : Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
@@ -415,7 +426,8 @@ private struct IdeaCardView: View {
                 photoPlaceholder
             }
         }
-        .frame(width: 88, height: 110)
+        .frame(maxWidth: .infinity)
+        .frame(height: 190)
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
@@ -514,6 +526,40 @@ private struct ChipsFlow: Layout {
 
 #if DEBUG
 extension StyleDirectionDTO {
+    /// Three alternatives per garment, like the backend sends.
+    private static let sampleIdeas: [StyleIdeaDTO] = {
+        let rows: [(String, [(String, String, String)])] = [
+            ("upper_body", [("Camisa de lino manga larga", "Verde botella", "#3E5641"),
+                            ("Camisa oxford", "Azul cielo", "#9DB8D9"),
+                            ("Polo de punto", "Caramelo", "#B87D4F")]),
+            ("lower_body", [("Chinos de algodón", "Beige cálido", "#D4C4A6"),
+                            ("Pantalón de lino", "Arena", "#CDBB9A"),
+                            ("Chino slim", "Azul marino", "#1F2A44")]),
+            ("outerwear", [("Saco desestructurado", "Camel", "#B5895A"),
+                           ("Chamarra de mezclilla", "Azul medio", "#4A6FA5"),
+                           ("Blazer de punto", "Gris", "#8A8D91")]),
+        ]
+        var ideas: [StyleIdeaDTO] = []
+        for (slot, garments) in rows {
+            for (garment, color, hex) in garments {
+                let n = ideas.count + 1
+                ideas.append(StyleIdeaDTO(
+                    id: "idea_\(n)", slot: slot, garment: garment,
+                    colors: [ColorSwatchDTO(name: color, hex: hex)],
+                    textures: ["algodón"], fit: "recto",
+                    why: "Fresco y elegante; este color resalta tu tono de piel.",
+                    priceMinMxn: 600, priceMaxMxn: 1100,
+                    reference: n == 6 ? nil : ProductDTO(
+                        id: "p\(n)", title: garment, store: "Liverpool", price: 899, currency: "MXN",
+                        link: nil, thumbnail: "https://picsum.photos/400/500?random=\(n)", largeImage: nil,
+                        delivery: nil, availability: nil, nearbyStore: nil
+                    )
+                ))
+            }
+        }
+        return ideas
+    }()
+
     static let sample = StyleDirectionDTO(
         brief: StyleBriefDTO(
             summary: "Por tu silueta natural y tu tono cálido, los cortes fluidos y las telas con textura te dan ese equilibrio entre elegante y fresco.",
@@ -531,34 +577,7 @@ extension StyleDirectionDTO {
             ],
             silhouette: "Cortes rectos o ligeramente estructurados, pero nunca ajustados."
         ),
-        ideas: [
-            StyleIdeaDTO(
-                id: "idea_3", slot: "lower_body", garment: "Chinos de algodón",
-                colors: [ColorSwatchDTO(name: "Beige cálido", hex: "#D4C4A6")],
-                textures: ["algodón grueso"], fit: "recto",
-                why: "Versátiles, frescos y combinan con todo.",
-                priceMinMxn: 600, priceMaxMxn: 1000
-            ),
-            StyleIdeaDTO(
-                id: "idea_1", slot: "upper_body", garment: "Camisa de lino manga larga",
-                colors: [ColorSwatchDTO(name: "Verde botella", hex: "#3E5641")],
-                textures: ["lino"], fit: "recta, sin ajustar",
-                why: "El lino es fresco y elegante; este color resalta tu tono de piel.",
-                priceMinMxn: 700, priceMaxMxn: 1200,
-                reference: ProductDTO(
-                    id: "p1", title: "Camisa de lino verde", store: "Etsy", price: 1172.73, currency: "MXN",
-                    link: nil, thumbnail: "https://picsum.photos/200/250?random=1", largeImage: nil,
-                    delivery: nil, availability: nil, nearbyStore: nil
-                )
-            ),
-            StyleIdeaDTO(
-                id: "idea_5", slot: "accessory", garment: "Reloj minimalista",
-                colors: [ColorSwatchDTO(name: "Plateado", hex: "")],
-                textures: ["metal"], fit: "estándar",
-                why: "Complementa tu look sin llamar demasiado la atención.",
-                priceMinMxn: 500, priceMaxMxn: 1000
-            ),
-        ],
+        ideas: sampleIdeas,
         round: 1
     )
 }

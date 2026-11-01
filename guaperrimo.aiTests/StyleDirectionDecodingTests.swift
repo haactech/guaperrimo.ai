@@ -254,6 +254,31 @@ import Testing
         #expect(groups[2].ideas.map(\.id) == ["idea_4", "idea_5"])
     }
 
+    /// Nine ideas, three per garment, as the backend sends them since the
+    /// preview builds complete outfits.
+    static let nineIdeasResponse: String = {
+        let rows = [("upper_body", ["Camisa oxford", "Camisa de lino", "Polo de punto"]),
+                    ("lower_body", ["Chino recto", "Pantalón de lino", "Chino slim"]),
+                    ("outerwear", ["Blazer de punto", "Chamarra de mezclilla", "Saco de lino"])]
+        var ideas: [String] = []
+        for (slot, garments) in rows {
+            for garment in garments {
+                let id = "idea_\(ideas.count + 1)"
+                ideas.append(##"{"id": "\##(id)", "slot": "\##(slot)", "garment": "\##(garment)", "colors": [{"name": "Azul marino", "hex": "#1F2A44"}], "textures": ["algodón"], "why": "Te favorece", "price_min_mxn": 500, "price_max_mxn": 900}"##)
+            }
+        }
+        let head = ##"{"session_id": "s", "phase": "preview", "turn": 3, "message": "Elige", "input_mode": "preview", "options": [], "is_final": false, "direction": {"brief": {"summary": "Tonos fríos.", "palette": [{"name": "Azul marino", "hex": "#1F2A44"}]}, "ideas": ["##
+        return head + ideas.joined(separator: ",") + ##"], "round": 1}}"##
+    }()
+
+    @Test func outfitRowsComeInShirtPantsJacketOrder() throws {
+        let direction = try #require(try decode(Self.nineIdeasResponse).direction)
+        let groups = direction.ideasBySlot
+        #expect(groups.map(\.slot) == ["upper_body", "lower_body", "outerwear"])
+        #expect(groups.map(\.ideas.count) == [3, 3, 3])
+        #expect(groups[2].ideas.map(\.id) == ["idea_7", "idea_8", "idea_9"])
+    }
+
     @Test func partialPayloadNeverBreaksTheChat() throws {
         let json = #"""
         {"session_id":"s","phase":"preview","turn":1,"message":"Hola","input_mode":"preview","is_final":false,

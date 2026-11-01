@@ -25,7 +25,6 @@ final class ConversationViewModel {
     var currentMessage: String = ""
     var currentOptions: [ChatOption] = []
     var currentInputMode: InputMode = .none
-    var priorityActions: [PriorityAction] = []
     var isSpeaking: Bool = false
 
     // Shopping list (final turn)
@@ -55,8 +54,6 @@ final class ConversationViewModel {
     }
 
     // Try-on overlay state
-    var tryOnState: TryOnState = .idle
-    var showTryOn: Bool = false
     var userImageUrl: String { imageUrl }
 
     // Look carousel state
@@ -92,7 +89,6 @@ final class ConversationViewModel {
     private let ttsService: TTSService
     private let sessionId: String
     private let imageUrl: String
-    private var tryOnTask: Task<Void, Never>?
     private var lookPollingTask: Task<Void, Never>?
     private var lookAutoOpenTask: Task<Void, Never>?
     private var pollingElapsed: TimeInterval = 0
@@ -258,7 +254,6 @@ final class ConversationViewModel {
         currentMessage = response.message
         currentOptions = response.options ?? []
         currentInputMode = response.inputMode
-        priorityActions = response.priorityActions ?? []
         shoppingList = response.shoppingList ?? []
         stores = response.stores ?? []
         totalMxn = response.totalMxn ?? 0
@@ -375,48 +370,6 @@ final class ConversationViewModel {
         logger.info("Saved look \(look.id, privacy: .public) — items: \(items.count, privacy: .public)")
     }
 
-    // MARK: - Try-on
-
-    func requestTryOn(for action: PriorityAction) {
-        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        tryOnState = .loading(action)
-        showTryOn = true
-
-        tryOnTask?.cancel()
-        tryOnTask = Task {
-            do {
-                let request = TryOnRequest(actionId: action.id, garmentDescription: action.description)
-                let response = try await stylistService.tryOn(sessionId: sessionId, request: request)
-                guard !Task.isCancelled else { return }
-                guard let url = URL(string: response.tryonImageUrl) else {
-                    tryOnState = .error(action, String(localized: "error_generic"))
-                    return
-                }
-                UINotificationFeedbackGenerator().notificationOccurred(.success)
-                tryOnState = .result(action, url)
-            } catch is CancellationError {
-                // Cancelled — do nothing
-            } catch {
-                guard !Task.isCancelled else { return }
-                logger.error("TryOn failed: \(String(describing: error), privacy: .public)")
-                tryOnState = .error(action, String(localized: "error_generic"))
-            }
-        }
-    }
-
-    func retryTryOn() {
-        if case .error(let action, _) = tryOnState {
-            requestTryOn(for: action)
-        }
-    }
-
-    func dismissTryOn() {
-        tryOnTask?.cancel()
-        tryOnTask = nil
-        tryOnState = .idle
-        showTryOn = false
-    }
-
     // MARK: - Looks
 
     func startLookPolling() {
@@ -525,7 +478,7 @@ final class ConversationViewModel {
         lookAutoOpenTask = Task {
             try? await Task.sleep(for: .seconds(3))
             guard !Task.isCancelled else { return }
-            if !showLookCarousel && !showTryOn && !showStylePreview {
+            if !showLookCarousel && !showStylePreview {
                 openLookCarousel()
             }
         }

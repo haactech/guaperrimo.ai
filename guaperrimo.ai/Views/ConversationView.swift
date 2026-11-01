@@ -32,9 +32,6 @@ struct ConversationView: View {
                 Spacer()
             }
         }
-        .fullScreenCover(isPresented: $viewModel.showTryOn) {
-            TryOnContainerView(viewModel: viewModel)
-        }
         .fullScreenCover(isPresented: $viewModel.showLookCarousel) {
             StyleMirrorView(viewModel: viewModel)
         }
@@ -129,14 +126,6 @@ struct ConversationView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     messageText
-
-                    if !viewModel.priorityActions.isEmpty {
-                        ForEach(viewModel.priorityActions) { action in
-                            PriorityActionCardView(action: action) {
-                                viewModel.requestTryOn(for: action)
-                            }
-                        }
-                    }
 
                     LookIndicatorView(
                         lookState: viewModel.lookState,
