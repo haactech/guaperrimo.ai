@@ -48,8 +48,7 @@ struct StyleMirrorView: View {
             let overlayOpacity = 1.0 - min(Double(linearProgress) * 3.0, 1.0)
 
             ZStack {
-                Color.black.ignoresSafeArea()
-                StyleMirrorBackgroundView()
+                TexturedBackground()
 
                 // Canvas (centered)
                 VStack {
