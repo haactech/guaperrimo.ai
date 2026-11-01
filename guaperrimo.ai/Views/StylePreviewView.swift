@@ -42,7 +42,7 @@ struct StylePreviewView: View {
                         if !message.isEmpty {
                             Text(message)
                                 .font(.title3)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(DS.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
 
@@ -85,16 +85,16 @@ struct StylePreviewView: View {
             if let season = brief.colorSeason, !season.isEmpty {
                 Text("\(String(localized: "preview_color_season")): \(season)")
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.85))
+                    .foregroundStyle(DS.textSecondary)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(Color.white.opacity(0.12), in: Capsule())
+                    .background(DS.surfaceRaised, in: Capsule())
             }
 
             if !brief.summary.isEmpty {
                 Text(brief.summary)
                     .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.85))
+                    .foregroundStyle(DS.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -108,7 +108,7 @@ struct StylePreviewView: View {
                                     SwatchCircle(swatch: swatch, size: 36)
                                     Text(swatch.name)
                                         .font(.caption2)
-                                        .foregroundStyle(.white.opacity(0.75))
+                                        .foregroundStyle(DS.textSecondary)
                                         .multilineTextAlignment(.center)
                                         .lineLimit(2)
                                 }
@@ -128,11 +128,11 @@ struct StylePreviewView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(swatch.name)
                                     .font(.caption.weight(.semibold))
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(DS.textPrimary)
                                 if let why = swatch.why, !why.isEmpty {
                                     Text(why)
                                         .font(.caption)
-                                        .foregroundStyle(.white.opacity(0.65))
+                                        .foregroundStyle(DS.textSecondary)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
                             }
@@ -149,19 +149,19 @@ struct StylePreviewView: View {
                     Image(systemName: "figure.stand")
                 }
                 .font(.caption)
-                .foregroundStyle(.white.opacity(0.8))
+                .foregroundStyle(DS.textSecondary)
             }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+        .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.m))
     }
 
     private func sectionLabel(_ text: String) -> some View {
         Text(text.uppercased())
             .font(.caption2.weight(.semibold))
             .tracking(1)
-            .foregroundStyle(.white.opacity(0.5))
+            .foregroundStyle(DS.textTertiary)
     }
 
     // MARK: - Ideas
@@ -171,10 +171,10 @@ struct StylePreviewView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(String(localized: "preview_ideas_title"))
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DS.textPrimary)
                 Text(String(localized: "preview_ideas_hint"))
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.6))
+                    .foregroundStyle(DS.textSecondary)
             }
 
             // One row per garment of the outfit (shirts, pants, jackets),
@@ -211,24 +211,24 @@ struct StylePreviewView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "preview_comment_title"))
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(DS.textPrimary)
 
             TextField(
                 "",
                 text: $comment,
-                prompt: Text(String(localized: "preview_comment_placeholder")).foregroundStyle(.white.opacity(0.4)),
+                prompt: Text(String(localized: "preview_comment_placeholder")).foregroundStyle(DS.textTertiary),
                 axis: .vertical
             )
             .lineLimit(1...4)
             .font(.subheadline)
-            .foregroundStyle(.white)
+            .foregroundStyle(DS.textPrimary)
             .tint(.white)
             .focused($commentFocused)
             .padding(12)
-            .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+            .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.s))
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.white.opacity(commentFocused ? 0.35 : 0.15), lineWidth: 1)
+                    .stroke(commentFocused ? DS.textTertiary : DS.stroke, lineWidth: 1)
             )
             .disabled(isSending)
         }
@@ -249,12 +249,15 @@ struct StylePreviewView: View {
             if isSending {
                 ThinkingIndicatorView()
                     .frame(minHeight: 50)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(String(localized: "preview_a11y_sending"))
             } else {
-                PrimaryButton(title: sendTitle, style: .light) {
+                PrimaryButton(title: sendTitle, style: .light, accessibilityLabel: sendTitle) {
                     commentFocused = false
                     onSend()
                 }
                 .disabled(!canSend)
+                .accessibilityHint(canSend ? "" : String(localized: "preview_a11y_send_hint"))
                 .padding(.horizontal, DS.Space.inset)
             }
         }
@@ -287,15 +290,15 @@ private struct IdeaCardView: View {
                 referencePhoto
                     .overlay(alignment: .topTrailing) {
                         Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                            .font(.system(size: 24))
-                            .foregroundStyle(isSelected ? .green : .white)
+                            .font(.title2)
+                            .foregroundStyle(isSelected ? DS.success : DS.textPrimary)
                             .background(Circle().fill(.black.opacity(0.35)))
                             .padding(8)
                     }
 
                 Text(idea.garment)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DS.textPrimary)
                     .multilineTextAlignment(.leading)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
@@ -309,10 +312,10 @@ private struct IdeaCardView: View {
                         ForEach(chips, id: \.self) { chip in
                             Text(chip)
                                 .font(.caption2.weight(.medium))
-                                .foregroundStyle(.white.opacity(0.85))
+                                .foregroundStyle(DS.textSecondary)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
-                                .background(Color.white.opacity(0.12), in: Capsule())
+                                .background(DS.surfaceRaised, in: Capsule())
                         }
                     }
                 }
@@ -320,13 +323,13 @@ private struct IdeaCardView: View {
                 if let price = idea.priceRangeLabel {
                     Text(price)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DS.textPrimary)
                 }
 
                 if let why = idea.why, !why.isEmpty {
                     Text(why)
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(DS.textSecondary)
                         .multilineTextAlignment(.leading)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
@@ -337,22 +340,29 @@ private struct IdeaCardView: View {
                 if idea.reference != nil {
                     Text(referenceCaption)
                         .font(.caption2)
-                        .foregroundStyle(.white.opacity(0.45))
+                        .foregroundStyle(DS.textTertiary)
                         .lineLimit(1)
                 }
             }
             .padding(10)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(isSelected ? Color.green.opacity(0.12) : Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+            .background(isSelected ? DS.success.opacity(0.12) : DS.surface, in: RoundedRectangle(cornerRadius: 16))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(isSelected ? Color.green : Color.white.opacity(0.12), lineWidth: isSelected ? 2 : 1)
+                    .stroke(isSelected ? DS.success : DS.stroke, lineWidth: isSelected ? 2 : 1)
             )
             .contentShape(RoundedRectangle(cornerRadius: 16))
             .animation(.easeOut(duration: 0.15), value: isSelected)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityDescription)
+        .accessibilityValue(isSelected ? String(localized: "preview_a11y_selected") : String(localized: "preview_a11y_not_selected"))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private var accessibilityDescription: String {
+        let colorNames = idea.colors.map(\.name).filter { !$0.isEmpty }
+        return ([idea.garment] + colorNames).joined(separator: ", ")
     }
 
     private var chips: [String] {
@@ -377,7 +387,7 @@ private struct IdeaCardView: View {
                     SwatchCircle(swatch: swatch, size: 14)
                     Text(swatch.name)
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.8))
+                        .foregroundStyle(DS.textSecondary)
                 }
             }
         }
@@ -393,7 +403,7 @@ private struct IdeaCardView: View {
                     case .failure:
                         photoPlaceholder
                     default:
-                        Color.white.opacity(0.08)
+                        DS.surface
                             .shimmer()
                     }
                 }
@@ -408,10 +418,10 @@ private struct IdeaCardView: View {
 
     private var photoPlaceholder: some View {
         ZStack {
-            Color.white.opacity(0.08)
+            DS.surface
             Image(systemName: "tshirt")
-                .font(.system(size: 26))
-                .foregroundStyle(.white.opacity(0.3))
+                .font(.title2)
+                .foregroundStyle(DS.textTertiary)
         }
     }
 }
@@ -429,15 +439,15 @@ private struct SwatchCircle: View {
                 Circle().fill(Color(red: rgb.red, green: rgb.green, blue: rgb.blue))
             } else {
                 // No hex: neutral swatch, the name carries the color.
-                Circle().fill(Color.white.opacity(0.12))
+                Circle().fill(DS.surfaceRaised)
                 Circle()
-                    .strokeBorder(Color.white.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
+                    .strokeBorder(DS.textTertiary, style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
             }
-            Circle().strokeBorder(Color.white.opacity(0.25), lineWidth: 1)
+            Circle().strokeBorder(DS.stroke, lineWidth: 1)
 
             if crossedOut {
                 Rectangle()
-                    .fill(Color.red.opacity(0.9))
+                    .fill(DS.danger)
                     .frame(width: size * 1.1, height: 2)
                     .rotationEffect(.degrees(-45))
             }

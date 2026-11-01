@@ -119,3 +119,7 @@
 "preview_send_error" = "No pudimos enviar tu selección. Intenta de nuevo.";
 "preview_open" = "Ver mis ideas";
 "preview_close" = "Cerrar";
+"preview_a11y_selected" = "Seleccionada";
+"preview_a11y_not_selected" = "No seleccionada";
+"preview_a11y_sending" = "Enviando tu selección…";
+"preview_a11y_send_hint" = "Elige al menos una idea o escribe un comentario.";

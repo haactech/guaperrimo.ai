@@ -119,3 +119,7 @@
 "preview_send_error" = "We couldn't send your picks. Try again.";
 "preview_open" = "See my ideas";
 "preview_close" = "Close";
+"preview_a11y_selected" = "Selected";
+"preview_a11y_not_selected" = "Not selected";
+"preview_a11y_sending" = "Sending your selection…";
+"preview_a11y_send_hint" = "Pick at least one idea or write a comment.";
