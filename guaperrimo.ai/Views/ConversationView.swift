@@ -104,11 +104,13 @@ struct ConversationView: View {
     @ViewBuilder
     private var mainContent: some View {
         switch viewModel.state {
-        case .loading, .processing:
-            VStack(spacing: 20) {
-                ThinkingIndicatorView()
-            }
-            .transition(.opacity)
+        case .loading:
+            ThinkingIndicatorView(message: String(localized: "thinking_first"))
+                .transition(.opacity)
+
+        case .processing:
+            ThinkingIndicatorView(message: String(localized: "thinking_next"))
+                .transition(.opacity)
 
         case .speaking:
             messageText

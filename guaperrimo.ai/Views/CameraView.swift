@@ -183,7 +183,8 @@ struct CameraView: View {
 
                 // Capture controls
                 HStack(alignment: .center, spacing: 40) {
-                    // 5s timer button
+                    #if DEBUG
+                    // 5s timer button (debug only: captures after 5 s ignoring pose detection)
                     Button {
                         startDebugTimer()
                     } label: {
@@ -208,6 +209,10 @@ struct CameraView: View {
                         }
                     }
                     .disabled(debugTimerActive || countdownActive)
+                    #else
+                    Color.clear
+                        .frame(width: 50, height: 50)
+                    #endif
 
                     // Main capture / countdown
                     ZStack {

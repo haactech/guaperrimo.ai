@@ -32,6 +32,11 @@ nonisolated struct ProductDTO: Codable, Sendable, Identifiable, Equatable, Hasha
     var priceLabel: String {
         "$\(Int(price.rounded())) \(currency)"
     }
+
+    /// "$539 MXN · Mercado Libre", or just the price when the store name is missing.
+    var priceAndStoreLabel: String {
+        [priceLabel, store].filter { !$0.isEmpty }.joined(separator: " · ")
+    }
 }
 
 nonisolated struct StoreDTO: Codable, Sendable, Identifiable, Equatable, Hashable {
@@ -65,6 +70,16 @@ nonisolated struct ShoppingItemDTO: Codable, Sendable, Identifiable, Equatable {
     let why: String?
     let priority: Int?
     let products: [ProductDTO]
+
+    /// `description` without markdown emphasis or an appended "Precio: $…" note.
+    var displayDescription: String { cleanStylistCopy(description) }
+
+    /// `why` cleaned the same way; nil when there is nothing left to show.
+    var displayWhy: String? {
+        guard let why else { return nil }
+        let cleaned = cleanStylistCopy(why)
+        return cleaned.isEmpty ? nil : cleaned
+    }
 }
 
 // MARK: - What the user keeps on the phone
@@ -103,5 +118,19 @@ nonisolated func distanceLabel(_ meters: Int) -> String {
         return "\(meters) m"
     }
     return String(format: "%.1f km", Double(meters) / 1000)
+}
+
+/// Strips markdown emphasis and appended price notes from copy the backend wrote for the LLM,
+/// e.g. "Saco azul marino slim (talla M). **Precio: $539**" → "Saco azul marino slim (talla M)."
+nonisolated func cleanStylistCopy(_ text: String) -> String {
+    var cleaned = text.replacingOccurrences(
+        of: #"\*{0,2}\s*Precio:\s*\$?\s*[\d.,]+\s*(MXN)?\s*\.?\s*\*{0,2}"#,
+        with: "",
+        options: [.regularExpression, .caseInsensitive]
+    )
+    cleaned = cleaned.replacingOccurrences(of: "**", with: "")
+    cleaned = cleaned.replacingOccurrences(of: "__", with: "")
+    cleaned = cleaned.replacingOccurrences(of: #"[ \t]{2,}"#, with: " ", options: .regularExpression)
+    return cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 #endif

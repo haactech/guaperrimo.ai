@@ -76,7 +76,7 @@ struct ShoppingListView: View {
 
     private func summaryCard(_ list: SavedShoppingList) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(list.summary)
+            Text(cleanStylistCopy(list.summary))
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.85))
                 .fixedSize(horizontal: false, vertical: true)
@@ -106,12 +106,12 @@ struct ShoppingListView: View {
                     .font(.caption2.weight(.semibold))
                     .tracking(1)
                     .foregroundStyle(.white.opacity(0.5))
-                Text(item.description)
+                Text(item.displayDescription)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white)
             }
 
-            if let why = item.why, !why.isEmpty {
+            if let why = item.displayWhy {
                 Text(why)
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.7))
@@ -142,7 +142,7 @@ struct ShoppingListView: View {
                         .lineLimit(2)
                         .strikethrough(purchased, color: .white.opacity(0.6))
 
-                    Text("\(product.priceLabel) · \(product.store)")
+                    Text(product.priceAndStoreLabel)
                         .font(.caption.weight(.medium))
                         .foregroundStyle(.white.opacity(0.85))
 
