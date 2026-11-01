@@ -51,6 +51,9 @@
 "tts_skip" = "Skip";
 "error_retry" = "Try again";
 "error_generic" = "Something went wrong. Try again.";
+"error_timeout" = "The stylist took too long. Try again.";
+"error_offline" = "No connection. Check your internet and try again.";
+"error_server" = "The stylist couldn't respond. Try again.";
 "voice_error" = "Couldn't understand you. Try again.";
 "progress_analyzing_photo" = "Looking at your outfit…";
 "progress_finding_stores" = "Finding stores near you…";

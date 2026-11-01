@@ -98,6 +98,8 @@ final class ConversationViewModel {
     private var lookPollingTask: Task<Void, Never>?
     private var lookAutoOpenTask: Task<Void, Never>?
     private var pollingElapsed: TimeInterval = 0
+    /// The last request sent, kept so `retry()` repeats it instead of restarting the session.
+    private var lastRequest: ChatRequest?
 
     init(
         sessionId: String,
@@ -283,8 +285,34 @@ final class ConversationViewModel {
         sendRequest(request)
     }
 
+    /// Re-sends the request that failed (not a new image turn); a first-turn failure
+    /// before any request existed restarts the conversation.
     func retry() {
-        startConversation()
+        guard let request = lastRequest else {
+            startConversation()
+            return
+        }
+        state = request.type == "image" ? .loading : .processing
+        sendRequest(request)
+    }
+
+    /// Maps a transport or server failure to a specific, actionable message.
+    static func errorMessage(for error: Error) -> String {
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .timedOut:
+                return String(localized: "error_timeout")
+            case .notConnectedToInternet, .networkConnectionLost, .cannotConnectToHost:
+                return String(localized: "error_offline")
+            default:
+                break
+            }
+        }
+        if case APIError.serverError(let status, _) = error {
+            if status == 504 { return String(localized: "error_timeout") }
+            if (500...599).contains(status) { return String(localized: "error_server") }
+        }
+        return String(localized: "error_generic")
     }
 
     private func sendRequest(_ request: ChatRequest) {
@@ -292,6 +320,7 @@ final class ConversationViewModel {
         // Every turn carries the device location (when granted) so the server
         // knows where to look for stores and never has to ask.
         request.location = locationService.fix
+        lastRequest = request
         if state != .processing {
             state = .loading
         }
@@ -312,7 +341,7 @@ final class ConversationViewModel {
                     previewError = String(localized: "preview_send_error")
                     state = .waitingForInput
                 } else {
-                    state = .error(String(localized: "error_generic"))
+                    state = .error(Self.errorMessage(for: error))
                 }
             }
         }

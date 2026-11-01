@@ -51,6 +51,9 @@
 "tts_skip" = "Saltar";
 "error_retry" = "Intentar de nuevo";
 "error_generic" = "Algo salió mal. Intenta de nuevo.";
+"error_timeout" = "El estilista tardó demasiado. Intenta de nuevo.";
+"error_offline" = "Sin conexión. Revisa tu internet e intenta de nuevo.";
+"error_server" = "El estilista no pudo responder. Intenta de nuevo.";
 "voice_error" = "No te entendí. Intenta de nuevo.";
 "progress_analyzing_photo" = "Mirando tu outfit…";
 "progress_finding_stores" = "Buscando tiendas cerca de ti…";
