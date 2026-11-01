@@ -306,7 +306,7 @@ struct ConversationView: View {
             }
         case .preview:
             previewReopenButton
-        case .none:
+        case .none, .ui:
             EmptyView()
         }
     }
