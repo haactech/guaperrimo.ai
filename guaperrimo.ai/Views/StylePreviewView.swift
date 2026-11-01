@@ -21,6 +21,13 @@ struct StylePreviewView: View {
     let onClose: () -> Void
 
     @FocusState private var commentFocused: Bool
+    @State private var contentWidth: CGFloat = 0
+
+    /// Two cards plus a peek of the third, so the row visibly scrolls.
+    private var cardWidth: CGFloat {
+        guard contentWidth > 0 else { return 160 }
+        return max(140, ((contentWidth - 12) / 2.2).rounded(.down))
+    }
 
     private var trimmedComment: String {
         comment.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -58,7 +65,9 @@ struct StylePreviewView: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 16)
+                    .onGeometryChange(for: CGFloat.self) { $0.size.width - 40 } action: { contentWidth = $0 }
                 }
+                .scrollIndicators(.hidden)
                 .id(direction.round) // a new round starts at the top
                 .scrollDismissesKeyboard(.interactively)
             }
@@ -101,7 +110,7 @@ struct StylePreviewView: View {
             if !brief.palette.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     sectionLabel(String(localized: "preview_palette"))
-                    ScrollView(.horizontal, showsIndicators: false) {
+                    ScrollView(.horizontal) {
                         HStack(alignment: .top, spacing: 12) {
                             ForEach(Array(brief.palette.enumerated()), id: \.offset) { _, swatch in
                                 VStack(spacing: 6) {
@@ -116,6 +125,7 @@ struct StylePreviewView: View {
                             }
                         }
                     }
+                    .scrollIndicators(.hidden)
                 }
             }
 
@@ -182,24 +192,13 @@ struct StylePreviewView: View {
             ForEach(direction.ideasBySlot) { group in
                 VStack(alignment: .leading, spacing: 10) {
                     sectionLabel(previewSlotTitle(group.slot))
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(alignment: .top, spacing: 12) {
-                            ForEach(group.ideas) { idea in
-                                IdeaCardView(
-                                    idea: idea,
-                                    isSelected: selectedIds.contains(idea.id),
-                                    onTap: {
-                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                        onToggle(idea.id)
-                                    }
-                                )
-                                .frame(width: 180)
-                                .disabled(isSending)
-                            }
-                        }
-                        .fixedSize(horizontal: false, vertical: true) // cards in a row share one height
-                    }
-                    .scrollClipDisabled()
+                    IdeasRow(
+                        ideas: group.ideas,
+                        cardWidth: cardWidth,
+                        selectedIds: selectedIds,
+                        isSending: isSending,
+                        onToggle: onToggle
+                    )
                 }
             }
         }
@@ -274,6 +273,68 @@ struct StylePreviewView: View {
             return String(localized: "preview_send_comment")
         }
         return String(format: String(localized: "preview_send"), selectedIds.count)
+    }
+}
+
+// MARK: - Ideas row
+
+/// One horizontal row of alternatives: about two and a bit cards visible,
+/// snapping to cards, with dots that follow the scroll position.
+private struct IdeasRow: View {
+    let ideas: [StyleIdeaDTO]
+    let cardWidth: CGFloat
+    let selectedIds: Set<String>
+    let isSending: Bool
+    let onToggle: (String) -> Void
+
+    @State private var position: String?
+
+    /// Cards that fit fully in view (the rest peeks).
+    private let visibleCount = 2
+
+    private var leadingIndex: Int {
+        ideas.firstIndex { $0.id == position } ?? 0
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            ScrollView(.horizontal) {
+                HStack(alignment: .top, spacing: 12) {
+                    ForEach(ideas) { idea in
+                        IdeaCardView(
+                            idea: idea,
+                            isSelected: selectedIds.contains(idea.id),
+                            onTap: {
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                onToggle(idea.id)
+                            }
+                        )
+                        .frame(width: cardWidth)
+                        .disabled(isSending)
+                        .id(idea.id)
+                    }
+                }
+                .scrollTargetLayout()
+                .fixedSize(horizontal: false, vertical: true) // cards in a row share one height
+            }
+            .scrollIndicators(.hidden)
+            .scrollClipDisabled()
+            .scrollTargetBehavior(.viewAligned)
+            .scrollPosition(id: $position)
+
+            if ideas.count > visibleCount {
+                HStack(spacing: 6) {
+                    ForEach(Array(ideas.enumerated()), id: \.offset) { index, _ in
+                        let isVisible = index >= leadingIndex && index < leadingIndex + visibleCount
+                        Capsule()
+                            .fill(isVisible ? DS.textPrimary : DS.textTertiary)
+                            .frame(width: isVisible ? 14 : 6, height: 6)
+                    }
+                }
+                .animation(.easeOut(duration: 0.15), value: leadingIndex)
+                .accessibilityHidden(true)
+            }
+        }
     }
 }
 
