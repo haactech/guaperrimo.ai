@@ -12,8 +12,6 @@ struct StyleMirrorCanvasView: View {
     let crossfadeProgress: CGFloat
     let isLoading: Bool
 
-    @State private var shimmerPhase: CGFloat = -1
-
     var body: some View {
         GeometryReader { geo in
             ZStack {
@@ -41,34 +39,12 @@ struct StyleMirrorCanvasView: View {
                 }
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 24))
-        .padding(.horizontal, 16)
-        .onAppear {
-            withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
-                shimmerPhase = 2
-            }
-        }
+        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.l))
+        .padding(.horizontal, DS.Space.m)
     }
 
     private func shimmerPlaceholder(size: CGSize) -> some View {
-        RoundedRectangle(cornerRadius: 20)
-            .fill(Color.white.opacity(0.08))
-            .overlay(
-                GeometryReader { geo in
-                    LinearGradient(
-                        colors: [
-                            .white.opacity(0),
-                            .white.opacity(0.15),
-                            .white.opacity(0)
-                        ],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                    .frame(width: geo.size.width * 0.6)
-                    .offset(x: geo.size.width * shimmerPhase)
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-            )
+        ShimmerPlaceholder(cornerRadius: DS.Radius.l)
     }
 }
 #endif

@@ -22,7 +22,7 @@ struct LookIndicatorView: View {
                 HStack(spacing: 6) {
                     ForEach(0..<max(totalCount, 3), id: \.self) { index in
                         Circle()
-                            .fill(index < readyCount ? Color.green : Color.white.opacity(0.3))
+                            .fill(index < readyCount ? DS.success : DS.textTertiary)
                             .frame(width: 8, height: 8)
                     }
                 }
@@ -31,41 +31,30 @@ struct LookIndicatorView: View {
                 if let timeout = timeoutMessage {
                     Text(timeout)
                         .font(.caption)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(DS.warning)
                         .multilineTextAlignment(.center)
                 } else if lookState == .teaser {
                     Text(String(localized: "looks_preparing"))
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.6))
+                        .foregroundStyle(DS.textSecondary)
                 } else if lookState == .ready {
                     Text(String(localized: "looks_first_ready"))
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.8))
+                        .foregroundStyle(DS.textSecondary)
                 }
 
                 // Tap target
                 if lookState == .ready {
-                    Button {
-                        onTap()
-                    } label: {
-                        Label(String(localized: "looks_carousel_title"), systemImage: "sparkles")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 12)
-                            .background(
-                                LinearGradient(
-                                    colors: [.purple, .blue],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                ),
-                                in: Capsule()
-                            )
-                    }
+                    PrimaryButton(
+                        title: String(localized: "looks_carousel_title"),
+                        systemImage: "sparkles",
+                        action: onTap
+                    )
+                    .padding(.horizontal, DS.Space.xl)
                 } else {
                     // Pulsing indicator while generating
                     ProgressView()
-                        .tint(.white.opacity(0.5))
+                        .tint(DS.textTertiary)
                         .scaleEffect(0.8)
                 }
             }

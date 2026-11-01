@@ -24,35 +24,32 @@ struct LookPieceSheet: View {
             }
             .safeAreaInset(edge: .bottom) {
                 VStack(spacing: 6) {
-                    Button {
+                    PrimaryButton(
+                        title: String(localized: "shopping_save_look"),
+                        systemImage: "bag.badge.plus",
+                        style: .light
+                    ) {
                         onSave()
                         saved = true
-                    } label: {
-                        Label(String(localized: "shopping_save_look"), systemImage: "bag.badge.plus")
-                            .font(.headline)
-                            .foregroundStyle(.black)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(.white, in: Capsule())
                     }
                     if saved {
                         Text(String(localized: "shopping_look_saved"))
                             .font(.caption)
-                            .foregroundStyle(.green)
+                            .foregroundStyle(DS.success)
                     }
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(Color.black)
+                .background(DS.bg)
             }
-            .background(Color.black)
+            .background(DS.bg)
             .navigationTitle(String(localized: "looks_pieces_title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
-        .presentationBackground(.black)
+        .presentationBackground(DS.bg)
     }
 
     private func pieceRow(_ piece: LookPieceItem) -> some View {
@@ -66,14 +63,14 @@ struct LookPieceSheet: View {
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                     default:
-                        Color.white.opacity(0.08)
+                        DS.surfaceRaised
                     }
                 }
                 .frame(width: 72, height: 72)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .clipShape(RoundedRectangle(cornerRadius: DS.Radius.s))
             } else {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.white.opacity(0.08))
+                    .fill(DS.surfaceRaised)
                     .frame(width: 72, height: 72)
             }
 
@@ -81,22 +78,22 @@ struct LookPieceSheet: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(piece.productName ?? piece.slotDescription)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DS.textPrimary)
 
                 Text(slotLabel(piece.category))
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.5))
+                    .foregroundStyle(DS.textTertiary)
 
                 Text(piece.slotDescription)
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.7))
+                    .foregroundStyle(DS.textSecondary)
                     .lineLimit(2)
             }
 
             Spacer()
         }
         .padding(12)
-        .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 12))
+        .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.s))
     }
 }
 #endif
