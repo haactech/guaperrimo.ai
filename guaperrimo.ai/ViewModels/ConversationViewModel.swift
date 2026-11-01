@@ -254,6 +254,13 @@ final class ConversationViewModel {
         showStylePreview = true
     }
 
+    /// Closes the preview and silences the stylist's voice, which would
+    /// otherwise keep reading the message of a screen that is gone.
+    func closeStylePreview() {
+        showStylePreview = false
+        skipSpeaking()
+    }
+
     /// Sends the ideas the user liked (and/or a comment) as an `idea_selection` turn.
     /// The response is a normal chat turn handled by `handleResponse`.
     func sendIdeaSelection(ids: [String], comment: String) {

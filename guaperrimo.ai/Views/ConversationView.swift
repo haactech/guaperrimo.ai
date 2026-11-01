@@ -62,7 +62,7 @@ struct ConversationView: View {
                         comment: viewModel.previewComment
                     )
                 },
-                onClose: { viewModel.showStylePreview = false }
+                onClose: { viewModel.closeStylePreview() }
             )
         }
         .onAppear {
