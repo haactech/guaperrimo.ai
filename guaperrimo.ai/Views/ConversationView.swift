@@ -10,6 +10,7 @@ struct ConversationView: View {
     @State private var viewModel: ConversationViewModel
     @State private var pendingTranscript: String?
     @State private var isHoldingMic = false
+    @State private var showLeaveConfirm = false
     @Environment(\.dismiss) private var dismiss
 
     private let imageUrl: String
@@ -71,6 +72,10 @@ struct ConversationView: View {
                 onClose: { viewModel.closeStylePreview() }
             )
         }
+        .confirmationDialog(String(localized: "leave_title"), isPresented: $showLeaveConfirm, titleVisibility: .visible) {
+            Button(String(localized: "leave_confirm"), role: .destructive) { dismiss() }
+            Button(String(localized: "leave_cancel"), role: .cancel) {}
+        }
         .onAppear {
             viewModel.startConversation()
         }
@@ -125,10 +130,22 @@ struct ConversationView: View {
 
     // MARK: - Header
 
+    /// Leaving mid-turn throws away the analysis in progress, so ask first.
+    private var needsLeaveConfirmation: Bool {
+        switch viewModel.state {
+        case .loading, .processing, .speaking: true
+        default: false
+        }
+    }
+
     private var header: some View {
         HStack {
             IconButton(systemName: "xmark", accessibilityLabel: String(localized: "preview_close")) {
-                dismiss()
+                if needsLeaveConfirmation {
+                    showLeaveConfirm = true
+                } else {
+                    dismiss()
+                }
             }
 
             Spacer()
