@@ -99,13 +99,11 @@
 "shopping_view" = "Mis looks";
 "shopping_title" = "Mis looks";
 "shopping_empty" = "Todavía no has guardado ningún look. Toca el corazón en el espejo y aquí lo tendrás, con sus prendas y tiendas cerca.";
-"shopping_no_product" = "No encontramos un producto exacto; usa la descripción para buscarlo en tienda.";
 "shopping_buy" = "Comprar";
 "shopping_directions" = "Cómo llegar";
 "shopping_online" = "En línea";
 "shopping_stores_title" = "Tiendas cerca con algo de tu lista";
 "shopping_total" = "Total aproximado";
-"shopping_saved_on" = "Guardada el";
 "shopping_mark" = "Marcar como comprado";
 "slot_upper_body" = "Arriba";
 "slot_outerwear" = "Encima";

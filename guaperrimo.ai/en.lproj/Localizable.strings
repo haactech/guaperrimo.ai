@@ -99,13 +99,11 @@
 "shopping_view" = "My looks";
 "shopping_title" = "My looks";
 "shopping_empty" = "You have not saved any look yet. Tap the heart in the mirror and it will be here, with its pieces and nearby stores.";
-"shopping_no_product" = "We couldn't find an exact product; use the description to look for it in store.";
 "shopping_buy" = "Buy";
 "shopping_directions" = "Directions";
 "shopping_online" = "Online";
 "shopping_stores_title" = "Nearby stores with something on your list";
 "shopping_total" = "Approximate total";
-"shopping_saved_on" = "Saved on";
 "shopping_mark" = "Mark as purchased";
 "slot_upper_body" = "Top";
 "slot_outerwear" = "Layer";
