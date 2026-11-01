@@ -95,6 +95,14 @@ struct ConversationView: View {
         GeometryReader { geo in
             VStack(spacing: 16) {
                 SessionPhotoCard(image: image, imageUrl: imageUrl)
+                    .overlay(alignment: .bottom) {
+                        if viewModel.isSpeaking {
+                            SpeakingPillView { viewModel.skipSpeaking() }
+                                .padding(.bottom, 12)
+                                .transition(.opacity)
+                        }
+                    }
+                    .animation(.easeInOut(duration: 0.2), value: viewModel.isSpeaking)
                     .padding(.horizontal, 16)
                     .frame(maxWidth: .infinity)
                     .frame(height: geo.size.height * 0.43)

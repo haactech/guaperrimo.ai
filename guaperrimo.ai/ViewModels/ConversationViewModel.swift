@@ -144,6 +144,12 @@ final class ConversationViewModel {
         }
     }
 
+    /// Cuts the stylist's voice short. `speak` returns once TTS stops, and
+    /// `handleResponse` then moves on to the next state on its own.
+    func skipSpeaking() {
+        ttsService.stop()
+    }
+
     /// Without a device location the server asks for the area in the conversation.
     func skipLocation() {
         sendFirstTurn()

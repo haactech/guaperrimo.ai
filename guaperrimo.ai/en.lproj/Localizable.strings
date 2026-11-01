@@ -42,6 +42,7 @@
 "voice_send" = "Send";
 "voice_retry" = "Retry";
 "mic_denied" = "guaperrimo.ai needs microphone access. Enable it in Settings.";
+"tts_skip" = "Skip";
 "error_retry" = "Try again";
 "error_generic" = "Something went wrong. Try again.";
 "voice_error" = "Couldn't understand you. Try again.";
