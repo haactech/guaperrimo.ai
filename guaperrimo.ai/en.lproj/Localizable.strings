@@ -33,6 +33,11 @@
 "location_allow" = "Use my location";
 "location_skip" = "Not now";
 
+/* Generative UI */
+"ui_continue" = "Continue";
+"ui_budget_format" = "%@ of %@";
+"ui_avoid" = "Avoid";
+
 /* Conversation */
 "session_title" = "Your stylist";
 "thinking" = "Analyzing your style…";
