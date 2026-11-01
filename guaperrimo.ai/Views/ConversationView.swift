@@ -167,21 +167,35 @@ struct ConversationView: View {
                 .transition(.opacity)
 
         case .speaking:
-            messageText
-                .transition(.opacity)
+            if hasCanvas {
+                canvasContent(isInteractive: false)
+                    .transition(.opacity)
+            } else {
+                messageText
+                    .transition(.opacity)
+            }
 
         case .waitingForInput:
-            VStack(spacing: 32) {
-                messageText
+            if hasCanvas {
+                canvasContent(isInteractive: !viewModel.isSpeaking)
+                    .transition(.opacity)
+            } else {
+                VStack(spacing: 32) {
+                    messageText
 
-                inputArea
+                    inputArea
+                }
+                .transition(.opacity)
             }
-            .transition(.opacity)
 
         case .finished:
             ScrollView {
                 VStack(spacing: 16) {
-                    messageText
+                    if hasCanvas {
+                        GenerativeCanvas(components: viewModel.currentUI, isInteractive: false)
+                    } else {
+                        messageText
+                    }
 
                     LookIndicatorView(
                         lookState: viewModel.lookState,
@@ -218,6 +232,43 @@ struct ConversationView: View {
                 .padding(.horizontal, DS.Space.l)
             }
             .transition(.opacity)
+        }
+    }
+
+    // MARK: - Generative canvas
+
+    private var hasCanvas: Bool { !viewModel.currentUI.isEmpty }
+
+    /// The server composed this turn: render its components instead of message + options.
+    /// The mic stays available below them when the turn takes voice.
+    private func canvasContent(isInteractive: Bool) -> some View {
+        VStack(spacing: DS.Space.l) {
+            GenerativeCanvas(
+                components: viewModel.currentUI,
+                isInteractive: isInteractive,
+                onChip: { id, label in viewModel.selectOption(ChatOption(id: id, label: label)) },
+                onSliderConfirm: { id, value in viewModel.sendUIAction(componentId: id, value: value) }
+            )
+            .padding(.horizontal, DS.Space.l)
+
+            if isInteractive && canvasTakesVoice {
+                voiceArea
+            }
+        }
+    }
+
+    private var canvasTakesVoice: Bool {
+        viewModel.currentInputMode == .voice || viewModel.currentUI.contains(where: \.isChipsWithVoice)
+    }
+
+    @ViewBuilder
+    private var voiceArea: some View {
+        if let errorMsg = viewModel.speechService.errorMessage {
+            micErrorView(errorMsg)
+        } else if let transcript = pendingTranscript {
+            confirmTranscriptView(transcript)
+        } else {
+            micInput
         }
     }
 
@@ -306,7 +357,7 @@ struct ConversationView: View {
             }
         case .preview:
             previewReopenButton
-        case .none:
+        case .none, .ui:
             EmptyView()
         }
     }

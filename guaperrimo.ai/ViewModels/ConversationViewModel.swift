@@ -26,6 +26,8 @@ final class ConversationViewModel {
     var currentMessage: String = ""
     var currentOptions: [ChatOption] = []
     var currentInputMode: InputMode = .none
+    /// Generative UI components of the current turn; empty means the legacy message + options layout.
+    var currentUI: [UIComponent] = []
     var isSpeaking: Bool = false
 
     // Shopping list (final turn)
@@ -218,6 +220,17 @@ final class ConversationViewModel {
         sendRequest(request)
     }
 
+    /// Answers a generative UI component that needs an explicit confirm (the slider).
+    /// Chips are answered through `selectOption`, the existing button path.
+    func sendUIAction(componentId: String, value: String) {
+        state = .processing
+        let request = ChatRequest(
+            type: "ui_action", imageUrl: nil, optionId: nil, transcript: nil,
+            componentId: componentId, value: value
+        )
+        sendRequest(request)
+    }
+
     func sendVoiceResponse(_ transcript: String) {
         guard !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         state = .processing
@@ -299,6 +312,7 @@ final class ConversationViewModel {
         currentMessage = response.message
         currentOptions = response.options ?? []
         currentInputMode = response.inputMode
+        currentUI = response.ui ?? []
         shoppingList = response.shoppingList ?? []
         stores = response.stores ?? []
         totalMxn = response.totalMxn ?? 0
@@ -334,7 +348,9 @@ final class ConversationViewModel {
         // Speak the message
         state = .speaking
         isSpeaking = true
-        await ttsService.speak(response.message)
+        // `speech` is written to be heard; `message` is the fallback for turns without it.
+        let spoken = response.speech?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        await ttsService.speak(spoken.isEmpty ? response.message : spoken)
         isSpeaking = false
 
         // Brief pause after TTS
