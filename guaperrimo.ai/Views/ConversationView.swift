@@ -12,7 +12,12 @@ struct ConversationView: View {
     @State private var isHoldingMic = false
     @Environment(\.dismiss) private var dismiss
 
-    init(sessionId: String, imageUrl: String, forceStyleMirror: Bool = false) {
+    private let imageUrl: String
+    private let image: UIImage?
+
+    init(sessionId: String, imageUrl: String, image: UIImage? = nil, forceStyleMirror: Bool = false) {
+        self.imageUrl = imageUrl
+        self.image = image
         let vm = ConversationViewModel(sessionId: sessionId, imageUrl: imageUrl)
         vm.forceStyleMirror = forceStyleMirror
         _viewModel = State(initialValue: vm)
@@ -25,11 +30,15 @@ struct ConversationView: View {
             VStack(spacing: 0) {
                 header
 
-                Spacer()
+                if showsPhoto {
+                    photoLayout
+                } else {
+                    Spacer()
 
-                mainContent
+                    mainContent
 
-                Spacer()
+                    Spacer()
+                }
             }
         }
         .fullScreenCover(isPresented: $viewModel.showLookCarousel) {
@@ -65,6 +74,37 @@ struct ConversationView: View {
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             if !transcript.isEmpty {
                 pendingTranscript = transcript
+            }
+        }
+    }
+
+    // MARK: - Photo layout
+
+    /// The photo stays visible while the stylist talks, asks and thinks; the
+    /// closing summary and errors need the whole screen.
+    private var showsPhoto: Bool {
+        switch viewModel.state {
+        case .locationConsent, .loading, .speaking, .waitingForInput, .processing: true
+        case .finished, .error: false
+        }
+    }
+
+    /// The card takes ~43% of the available height; everything else scrolls
+    /// only when it does not fit (small screens, long messages).
+    private var photoLayout: some View {
+        GeometryReader { geo in
+            VStack(spacing: 16) {
+                SessionPhotoCard(image: image, imageUrl: imageUrl)
+                    .padding(.horizontal, 16)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: geo.size.height * 0.43)
+
+                ScrollView {
+                    mainContent
+                        .frame(maxWidth: .infinity)
+                        .frame(minHeight: geo.size.height * 0.57 - 16 - 8)
+                }
+                .scrollBounceBehavior(.basedOnSize)
             }
         }
     }
@@ -269,6 +309,7 @@ struct ConversationView: View {
             .font(.title3)
             .foregroundStyle(.white)
             .multilineTextAlignment(.center)
+            .minimumScaleFactor(0.85)
             .padding(.horizontal, 32)
     }
 
