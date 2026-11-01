@@ -165,11 +165,11 @@ struct ConversationView: View {
                 .transition(.opacity)
 
         case .loading:
-            ThinkingIndicatorView(message: String(localized: "thinking_first"))
+            ThinkingIndicatorView(message: viewModel.progressText ?? String(localized: "thinking_first"))
                 .transition(.opacity)
 
         case .processing:
-            ThinkingIndicatorView(message: String(localized: "thinking_next"))
+            ThinkingIndicatorView(message: viewModel.progressText ?? String(localized: "thinking_next"))
                 .transition(.opacity)
 
         case .speaking:

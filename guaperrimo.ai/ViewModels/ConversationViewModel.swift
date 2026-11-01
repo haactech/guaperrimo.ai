@@ -29,6 +29,8 @@ final class ConversationViewModel {
     /// Generative UI components of the current turn; empty means the legacy message + options layout.
     var currentUI: [UIComponent] = []
     var isSpeaking: Bool = false
+    /// What the stylist is doing right now (from the stream); nil falls back to the generic text.
+    var progressText: String? = nil
 
     // Shopping list (final turn)
     var shoppingList: [ShoppingItemDTO] = []
@@ -297,10 +299,13 @@ final class ConversationViewModel {
 
         Task {
             do {
-                let response = try await stylistService.chat(sessionId: sessionId, request: request)
+                let response = try await stylistService.chatStream(sessionId: sessionId, request: request) { [weak self] progress in
+                    Task { @MainActor in self?.progressText = Self.progressText(for: progress) }
+                }
                 await handleResponse(response)
             } catch {
                 logger.error("Chat failed: \(String(describing: error), privacy: .public)")
+                progressText = nil
                 if isSendingSelection {
                     // Keep the preview open so the user can retry without losing his picks.
                     isSendingSelection = false
@@ -313,7 +318,26 @@ final class ConversationViewModel {
         }
     }
 
+    /// Spanish line for a stream stage; unknown stages keep the generic text.
+    static func progressText(for progress: ChatProgress) -> String? {
+        switch progress.stage {
+        case "analyzing_photo": return String(localized: "progress_analyzing_photo")
+        case "finding_stores": return String(localized: "progress_finding_stores")
+        case "geocoding": return String(localized: "progress_geocoding")
+        case "thinking": return String(localized: "progress_thinking")
+        case "searching_products":
+            let detail = progress.detail?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            return detail.isEmpty
+                ? String(localized: "progress_searching_generic")
+                : String(format: String(localized: "progress_searching_products"), detail)
+        case "proposing_preview": return String(localized: "progress_proposing_preview")
+        case "composing": return String(localized: "progress_composing")
+        default: return nil
+        }
+    }
+
     private func handleResponse(_ response: ChatResponse) async {
+        progressText = nil
         logger.info("Handling response — phase: \(response.phase), turn: \(response.turn), isFinal: \(response.isFinal)")
 
         currentMessage = response.message

@@ -52,6 +52,14 @@
 "error_retry" = "Intentar de nuevo";
 "error_generic" = "Algo salió mal. Intenta de nuevo.";
 "voice_error" = "No te entendí. Intenta de nuevo.";
+"progress_analyzing_photo" = "Mirando tu outfit…";
+"progress_finding_stores" = "Buscando tiendas cerca de ti…";
+"progress_geocoding" = "Ubicando tu zona…";
+"progress_thinking" = "Pensando…";
+"progress_searching_products" = "Buscando %@…";
+"progress_searching_generic" = "Buscando prendas…";
+"progress_proposing_preview" = "Armando tu propuesta…";
+"progress_composing" = "Armando tu plan…";
 
 /* Try-On */
 "tryon_done" = "Listo";
