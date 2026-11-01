@@ -362,22 +362,21 @@ Total estimado: 3,5 semanas de una persona. Las fases 0 y 1 se pueden hacer sin 
 
 ### 6.1 Progreso
 
-**Fase 0 completada el 31 de octubre de 2026** en la rama `ios-ux-flow-audit` (basada en `shopping-list` @ `2451d67`), un commit por cambio, cada uno compilado para simulador antes de subirlo a GitHub:
+**Fase 0 completada el 31 de octubre de 2026** en la rama `ios-ux-flow-audit`, un commit por cambio, cada uno compilado para simulador antes de subirlo a GitHub. El 1 de noviembre la rama se rebaseó sobre `main` (que ya incluía `style-preview`, PR #1); dos commits se descartaron porque `main` eliminó las vistas que tocaban (`TryOnLoadingView`, `PriorityActionCardView`), así que R-8 y R-3 quedaron resueltos por eliminación.
 
 | Hallazgo | Commit | Cambio |
 |----------|--------|--------|
-| T-6 | `4833085` | Sin evento de prueba de Sentry al arrancar; `sendDefaultPii = false`. |
-| C-6 | `b1dfe96` | Botón "5s" solo en `#if DEBUG`, con hueco para mantener el obturador centrado. |
-| T-5 | `62f4eb6` | Acentos, "¡…!" y puntos suspensivos tipográficos en es/en; "micrófono" en el plist de permisos. |
-| S-4 | `2bd149c` | Indicador de carga centrado; "Mirando tu outfit…" / "Pensando…" según la fase. |
-| R-8 | `50fa337` | Sin porcentaje inventado en la carga del try‑on. |
-| L-6 | `8524cb5` | Etiqueta de prenda localizada en la hoja de prendas. |
-| R-3 | `5c51169` | "Impacto/Esfuerzo" y sus niveles localizados. |
-| G-3, G-4 | `8335e2c` | `cleanStylistCopy()` quita `**` y "Precio: $…"; sin " · " cuando no hay tienda; 5 tests nuevos. |
-| P-1, P-2, P-3, P-5 | `b8dde2d` | "Analizar mi outfit" ✦, "Continuar sesión" al volver de la conversación, error de subida en lenguaje humano. |
-| T-8 | `7eedd99` | Borrados el carrusel muerto, `ConversationMessage`, `retryLook` y 8 claves de texto huérfanas. |
+| T-6 | `fd13ed7` | Sin evento de prueba de Sentry al arrancar; `sendDefaultPii = false`. |
+| C-6 | `28f65fc` | Botón "5s" solo en `#if DEBUG`, con hueco para mantener el obturador centrado. |
+| T-5 | `990f164` | Acentos, "¡…!" y puntos suspensivos tipográficos en es/en; "micrófono" en el plist de permisos. |
+| S-4 | `865eaf0` | Indicador de carga centrado; "Mirando tu outfit…" / "Pensando…" según la fase. |
+| L-6 | `5cb52a6` | Etiqueta de prenda localizada en la hoja de prendas. |
+| G-3, G-4 | `19f9871` | `cleanStylistCopy()` quita `**` y "Precio: $…"; sin " · " cuando no hay tienda; 5 tests nuevos. |
+| P-1, P-2, P-3, P-5 | `143d3c8` | "Analizar mi outfit" ✦, "Continuar sesión" al volver de la conversación, error de subida en lenguaje humano. |
+| T-8 | `d85a016` | Borrados el carrusel muerto, `ConversationMessage`, `retryLook` y 8 claves de texto huérfanas. |
+| T-8 | *(siguiente)* | 10 claves `tryon_*` huérfanas tras la eliminación del try‑on individual en `main`. |
 
-Tests unitarios tras la fase 0: **18 de 19 pasan**. El que falla es `ElevenLabsTests.checkCurrentConfiguredVoice()`, que llama a la API real y recibe `payment_required` ("Free users cannot use library voices via the API"): la voz configurada ya no funciona en el plan gratuito, así que hoy el TTS cae en silencio a `AVSpeechSynthesizer` es‑MX (hallazgo T-7). No está relacionado con estos cambios; hay que elegir otra voz o pagar el plan.
+Tests unitarios tras el rebase: **25 de 26 pasan**. El que falla es `ElevenLabsTests.checkCurrentConfiguredVoice()`, que llama a la API real y recibe `payment_required` ("Free users cannot use library voices via the API"): la voz configurada ya no funciona en el plan gratuito, así que hoy el TTS cae en silencio a `AVSpeechSynthesizer` es‑MX (hallazgo T-7). No está relacionado con estos cambios; hay que elegir otra voz o pagar el plan.
 
 Siguiente paso sugerido: fase 1 (sistema de diseño) o el modo stub de §7.1 para tomar capturas en simulador.
 
