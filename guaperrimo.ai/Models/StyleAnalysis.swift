@@ -9,10 +9,12 @@ import Foundation
 // MARK: - Request
 
 nonisolated struct ChatRequest: Codable, Sendable {
-    let type: String           // "image" | "button_response" | "voice_response"
+    let type: String           // "image" | "button_response" | "voice_response" | "idea_selection"
     let imageUrl: String?      // solo type=image
     let optionId: String?      // solo type=button_response
     let transcript: String?    // solo type=voice_response
+    var selectedIdeas: [String]? = nil // solo type=idea_selection
+    var text: String? = nil            // solo type=idea_selection (comentario opcional)
 }
 
 // MARK: - Response
@@ -20,6 +22,7 @@ nonisolated struct ChatRequest: Codable, Sendable {
 nonisolated enum InputMode: String, Codable, Sendable {
     case buttons
     case voice
+    case preview   // style preview: brief + garment ideas to pick from
     case none
 }
 
@@ -45,5 +48,16 @@ nonisolated struct ChatResponse: Codable, Sendable {
     let options: [ChatOption]?
     let isFinal: Bool
     let priorityActions: [PriorityAction]?
+    let looksGenerating: Bool?
+
+    // Final turn: the shopping list with real products and nearby stores
+    var shoppingList: [ShoppingItemDTO]? = nil
+    var stores: [StoreDTO]? = nil
+    var totalMxn: Double? = nil
+    var locationKnown: Bool? = nil
+    var matrixAvailable: Bool? = nil
+
+    // Preview turn (input_mode "preview"): style brief + garment ideas
+    var direction: StyleDirectionDTO? = nil
 }
 #endif

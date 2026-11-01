@@ -41,7 +41,7 @@ struct APIClient: Sendable {
         timeout: TimeInterval = 60
     ) async throws -> TResponse {
         guard let url = URL(string: "\(Self.baseURL)\(path)") else {
-            logger.error("Invalid URL: \(Self.baseURL)\(path)")
+            logger.error("Invalid URL: \(Self.baseURL, privacy: .public)\(path, privacy: .public)")
             throw APIError.invalidURL
         }
 
@@ -55,7 +55,7 @@ struct APIClient: Sendable {
         request.httpBody = try encoder.encode(body)
 
         let bodyString = String(data: request.httpBody!, encoding: .utf8) ?? ""
-        logger.info("⬆️ POST \(url.absoluteString) — \(bodyString)")
+        logger.info("⬆️ POST \(url.absoluteString, privacy: .public) — \(bodyString, privacy: .public)")
 
         let (responseData, response) = try await URLSession.shared.data(for: request)
 
@@ -64,7 +64,7 @@ struct APIClient: Sendable {
         }
 
         let responseBody = String(data: responseData, encoding: .utf8) ?? "<binary \(responseData.count) bytes>"
-        logger.info("⬇️ HTTP \(httpResponse.statusCode) — \(responseBody)")
+        logger.info("⬇️ HTTP \(httpResponse.statusCode, privacy: .public) — \(responseBody, privacy: .public)")
 
         guard (200...299).contains(httpResponse.statusCode) else {
             throw APIError.serverError(statusCode: httpResponse.statusCode, message: responseBody)
@@ -75,7 +75,46 @@ struct APIClient: Sendable {
         do {
             return try decoder.decode(TResponse.self, from: responseData)
         } catch {
-            logger.error("❌ Decode error: \(error.localizedDescription) — body: \(responseBody)")
+            logger.error("❌ Decode error: \(String(describing: error), privacy: .public) — body: \(responseBody, privacy: .public)")
+            throw APIError.decodingFailed(underlying: error, body: responseBody)
+        }
+    }
+
+    func getJSON<TResponse: Decodable & Sendable>(
+        path: String,
+        timeout: TimeInterval = 30
+    ) async throws -> TResponse {
+        guard let url = URL(string: "\(Self.baseURL)\(path)") else {
+            logger.error("Invalid URL: \(Self.baseURL, privacy: .public)\(path, privacy: .public)")
+            throw APIError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.timeoutInterval = timeout
+
+        logger.info("⬆️ GET \(url.absoluteString, privacy: .public)")
+
+        let (responseData, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+
+        let responseBody = String(data: responseData, encoding: .utf8) ?? "<binary \(responseData.count) bytes>"
+        logger.info("⬇️ HTTP \(httpResponse.statusCode, privacy: .public) — \(responseBody, privacy: .public)")
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            throw APIError.serverError(statusCode: httpResponse.statusCode, message: responseBody)
+        }
+
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        do {
+            return try decoder.decode(TResponse.self, from: responseData)
+        } catch {
+            logger.error("❌ Decode error: \(String(describing: error), privacy: .public) — body: \(responseBody, privacy: .public)")
             throw APIError.decodingFailed(underlying: error, body: responseBody)
         }
     }
@@ -88,7 +127,7 @@ struct APIClient: Sendable {
         data: Data
     ) async throws -> T {
         guard let url = URL(string: "\(Self.baseURL)\(path)") else {
-            logger.error("Invalid URL: \(Self.baseURL)\(path)")
+            logger.error("Invalid URL: \(Self.baseURL, privacy: .public)\(path, privacy: .public)")
             throw APIError.invalidURL
         }
 
@@ -106,14 +145,14 @@ struct APIClient: Sendable {
 
         request.httpBody = body
 
-        logger.info("⬆️ POST \(url.absoluteString) (\(body.count) bytes)")
+        logger.info("⬆️ POST \(url.absoluteString, privacy: .public) (\(body.count, privacy: .public) bytes)")
 
         let responseData: Data
         let response: URLResponse
         do {
             (responseData, response) = try await URLSession.shared.data(for: request)
         } catch {
-            logger.error("❌ Network error: \(error.localizedDescription)")
+            logger.error("❌ Network error: \(String(describing: error), privacy: .public)")
             throw error
         }
 
@@ -123,10 +162,10 @@ struct APIClient: Sendable {
         }
 
         let responseBody = String(data: responseData, encoding: .utf8) ?? "<binary \(responseData.count) bytes>"
-        logger.info("⬇️ HTTP \(httpResponse.statusCode) — \(responseBody)")
+        logger.info("⬇️ HTTP \(httpResponse.statusCode, privacy: .public) — \(responseBody, privacy: .public)")
 
         guard (200...299).contains(httpResponse.statusCode) else {
-            logger.error("❌ Server error \(httpResponse.statusCode): \(responseBody)")
+            logger.error("❌ Server error \(httpResponse.statusCode, privacy: .public): \(responseBody, privacy: .public)")
             throw APIError.serverError(statusCode: httpResponse.statusCode, message: responseBody)
         }
 
@@ -135,7 +174,7 @@ struct APIClient: Sendable {
         do {
             return try decoder.decode(T.self, from: responseData)
         } catch {
-            logger.error("❌ Decode error: \(error.localizedDescription) — body: \(responseBody)")
+            logger.error("❌ Decode error: \(String(describing: error), privacy: .public) — body: \(responseBody, privacy: .public)")
             throw APIError.decodingFailed(underlying: error, body: responseBody)
         }
     }

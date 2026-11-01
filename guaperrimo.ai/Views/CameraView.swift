@@ -100,6 +100,8 @@ struct ShakeDetector: UIViewRepresentable {
 // MARK: - Main camera view
 
 struct CameraView: View {
+    @State private var shoppingStore = ShoppingListStore.shared
+    @State private var showShoppingList = false
     @State private var cameraManager = CameraManager()
     @State private var countdownRemaining: Int = 0
     @State private var countdownActive = false
@@ -244,6 +246,28 @@ struct CameraView: View {
                 .padding(.bottom, 40)
             }
 
+            // Layer 3b: shortcut to the saved shopping list
+            if shoppingStore.hasList {
+                VStack {
+                    HStack {
+                        Button {
+                            showShoppingList = true
+                        } label: {
+                            Image(systemName: "bag.fill")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .frame(width: 44, height: 44)
+                                .background(.black.opacity(0.45), in: Circle())
+                        }
+                        .accessibilityLabel(String(localized: "shopping_title"))
+                        .padding(.leading, 16)
+                        .padding(.top, 52)
+                        Spacer()
+                    }
+                    Spacer()
+                }
+            }
+
             // Layer 4: Flash overlay
             if showFlash {
                 Color.white
@@ -271,6 +295,9 @@ struct CameraView: View {
             #endif
         }
         .statusBarHidden()
+        .sheet(isPresented: $showShoppingList) {
+            ShoppingListView()
+        }
         .onChange(of: posState) { oldState, newState in
             handleStateChange(from: oldState, to: newState)
         }

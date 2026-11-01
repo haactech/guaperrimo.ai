@@ -12,8 +12,10 @@ struct ConversationView: View {
     @State private var isHoldingMic = false
     @Environment(\.dismiss) private var dismiss
 
-    init(sessionId: String, imageUrl: String) {
-        _viewModel = State(initialValue: ConversationViewModel(sessionId: sessionId, imageUrl: imageUrl))
+    init(sessionId: String, imageUrl: String, forceStyleMirror: Bool = false) {
+        let vm = ConversationViewModel(sessionId: sessionId, imageUrl: imageUrl)
+        vm.forceStyleMirror = forceStyleMirror
+        _viewModel = State(initialValue: vm)
     }
 
     var body: some View {
@@ -29,6 +31,30 @@ struct ConversationView: View {
 
                 Spacer()
             }
+        }
+        .fullScreenCover(isPresented: $viewModel.showLookCarousel) {
+            StyleMirrorView(viewModel: viewModel)
+        }
+        .sheet(isPresented: $viewModel.showShoppingList) {
+            ShoppingListView()
+        }
+        .fullScreenCover(isPresented: $viewModel.showStylePreview) {
+            StylePreviewView(
+                message: viewModel.currentMessage,
+                direction: viewModel.direction ?? StyleDirectionDTO(brief: nil, ideas: []),
+                selectedIds: viewModel.selectedIdeaIds,
+                comment: $viewModel.previewComment,
+                isSending: viewModel.isSendingSelection,
+                errorMessage: viewModel.previewError,
+                onToggle: { viewModel.toggleIdea($0) },
+                onSend: {
+                    viewModel.sendIdeaSelection(
+                        ids: viewModel.orderedSelectedIdeaIds,
+                        comment: viewModel.previewComment
+                    )
+                },
+                onClose: { viewModel.showStylePreview = false }
+            )
         }
         .onAppear {
             viewModel.speechService.requestAuthorization()
@@ -101,10 +127,16 @@ struct ConversationView: View {
                 VStack(spacing: 16) {
                     messageText
 
-                    if !viewModel.priorityActions.isEmpty {
-                        ForEach(viewModel.priorityActions) { action in
-                            PriorityActionCardView(action: action)
-                        }
+                    LookIndicatorView(
+                        lookState: viewModel.lookState,
+                        readyCount: viewModel.readyLooksCount,
+                        totalCount: viewModel.totalLooksCount,
+                        timeoutMessage: viewModel.lookTimeoutMessage,
+                        onTap: { viewModel.openLookCarousel() }
+                    )
+
+                    if !viewModel.shoppingList.isEmpty {
+                        shoppingListActions
                     }
                 }
                 .padding(.horizontal, 24)
@@ -139,6 +171,44 @@ struct ConversationView: View {
         }
     }
 
+    // MARK: - Shopping list
+
+    private var shoppingListActions: some View {
+        let liked = ShoppingListStore.shared.current?.liked == true
+        return VStack(spacing: 10) {
+            Button {
+                viewModel.showShoppingList = true
+            } label: {
+                Label(String(localized: "shopping_view"), systemImage: "bag.fill")
+                    .font(.headline)
+                    .foregroundStyle(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(.white, in: Capsule())
+            }
+
+            if liked {
+                Text(String(localized: "shopping_liked"))
+                    .font(.subheadline)
+                    .foregroundStyle(.green)
+            } else {
+                Button {
+                    ShoppingListStore.shared.markLiked()
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                } label: {
+                    Label(String(localized: "shopping_like"), systemImage: "heart.fill")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 10)
+                        .background(Color.white.opacity(0.1), in: Capsule())
+                        .overlay(Capsule().stroke(Color.white.opacity(0.2), lineWidth: 1))
+                }
+            }
+        }
+        .padding(.top, 8)
+    }
+
     // MARK: - Message text
 
     private var messageText: some View {
@@ -164,8 +234,25 @@ struct ConversationView: View {
             } else {
                 micInput
             }
+        case .preview:
+            previewReopenButton
         case .none:
             EmptyView()
+        }
+    }
+
+    // MARK: - Style preview (reopen after closing it)
+
+    private var previewReopenButton: some View {
+        Button {
+            viewModel.openStylePreview()
+        } label: {
+            Label(String(localized: "preview_open"), systemImage: "sparkles")
+                .font(.headline)
+                .foregroundStyle(.black)
+                .padding(.horizontal, 32)
+                .padding(.vertical, 14)
+                .background(.white, in: Capsule())
         }
     }
 

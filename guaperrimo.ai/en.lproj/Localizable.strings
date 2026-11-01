@@ -36,3 +36,88 @@
 "error_retry" = "Try again";
 "error_generic" = "Something went wrong. Try again.";
 "voice_error" = "Couldn't understand you. Try again.";
+
+/* Try-On */
+"tryon_button" = "See how it looks on me";
+"tryon_loading" = "Generating virtual try-on...";
+"tryon_cancel" = "Cancel";
+"tryon_done" = "Done";
+"tryon_title" = "Virtual try-on";
+"tryon_before" = "Before";
+"tryon_after" = "After";
+"tryon_mode_side" = "Side by side";
+"tryon_mode_slider" = "Slider";
+"tryon_error_title" = "Couldn't generate the try-on";
+"tryon_retry" = "Try again";
+"tryon_back" = "Back to recommendations";
+"tryon_progress_1" = "Finding the perfect garment...";
+"tryon_progress_2" = "Adjusting to your silhouette...";
+"tryon_progress_3" = "Almost ready...";
+"tryon_progress_4" = "Final touches...";
+
+/* Looks */
+"looks_preparing" = "Generating your looks...";
+"looks_first_ready" = "Your first look is ready!";
+"looks_generating" = "Generating this look...";
+"looks_failed_message" = "We couldn't generate this look";
+"looks_retry" = "Try again";
+"looks_compare" = "Compare";
+"looks_pieces" = "See garments";
+"looks_pieces_title" = "Garments";
+"looks_carousel_title" = "Your Looks";
+"looks_timeout_slow" = "Taking longer than expected...";
+"looks_timeout_retry" = "Still working on it. You can check back later.";
+
+/* Style Mirror */
+"mirror_title" = "Your Style Mirror";
+"mirror_original" = "Original";
+"mirror_swipe_hint" = "Swipe to explore looks";
+"mirror_generating" = "Generating your look...";
+
+/* My list */
+"shopping_save" = "I like it, save my list";
+"shopping_saved" = "List saved";
+"shopping_view" = "See my list";
+"shopping_title" = "My list";
+"shopping_empty" = "You haven't saved a list yet. When you like a recommendation, save it and it will be here for your shopping trip.";
+"shopping_no_product" = "We couldn't find an exact product; use the description to look for it in store.";
+"shopping_buy" = "Buy";
+"shopping_directions" = "Directions";
+"shopping_online" = "Online";
+"shopping_stores_title" = "Nearby stores with something on your list";
+"shopping_total" = "Approximate total";
+"shopping_saved_on" = "Saved on";
+"shopping_mark" = "Mark as purchased";
+"slot_upper_body" = "Top";
+"slot_outerwear" = "Layer";
+"slot_lower_body" = "Bottom";
+"slot_footwear" = "Shoes";
+"slot_accessory" = "Accessory";
+
+"shopping_like" = "I like this outfit";
+"shopping_liked" = "Saved as favorite";
+"shopping_save_look" = "Save this look to my list";
+"shopping_look_saved" = "Look saved";
+
+/* Style preview */
+"preview_title" = "Your style";
+"preview_color_season" = "Color season";
+"preview_palette" = "Your palette";
+"preview_avoid" = "Avoid";
+"preview_ideas_title" = "Ideas for you";
+"preview_ideas_hint" = "Tap the ones you like in each row. We build complete outfits on your photo with them.";
+"preview_row_upper_body" = "Shirts and tees";
+"preview_row_lower_body" = "Pants";
+"preview_row_outerwear" = "Jackets and blazers";
+"preview_slot_accessories" = "Accessories";
+"preview_fit" = "Fit";
+"preview_reference" = "Reference photo";
+"preview_price_from" = "From";
+"preview_price_up_to" = "Up to";
+"preview_comment_title" = "Anything you'd like to change?";
+"preview_comment_placeholder" = "E.g. something more casual, softer colors…";
+"preview_send" = "Build my outfits (%d)";
+"preview_send_comment" = "Send to your stylist";
+"preview_send_error" = "We couldn't send your picks. Try again.";
+"preview_open" = "See my ideas";
+"preview_close" = "Close";
