@@ -397,6 +397,20 @@ Decisiones visibles que conviene revisar en el teléfono: el gradiente de marca 
 
 Pendiente de la fase 2: historial colapsable (S-3), micrófono por toque (S-6, S-7), reintento sin perder el turno (S-9), errores específicos (S-10), confirmar al cerrar a mitad del análisis (S-11). Fases 3 y 4 completas, más los hallazgos `SP-n` del preview.
 
+### 6.3 Fase 1.5 (UI generativa) y arreglos del preview (1 de noviembre de 2026, segunda ronda)
+
+Tres agentes en paralelo, revisados y encadenados a mano. Ramas: backend `generative-ui` (sobre `main`); iOS `ios-conversation-photo` → `ios-generative-canvas` → `ios-style-preview-fixes`.
+
+| Pieza | Rama | Commits | Qué entró |
+|-------|------|---------|-----------|
+| Contrato de componentes (backend) | `generative-ui` | `47dd845` … `d17ebaa` (6) | Paquete `internal/ui` con los 7 componentes de §9.3 validados; `ask_user` acepta `ui` (text, chips, slider, palette); las preguntas del servidor traen `ui`; la pantalla final la compone el código (`text`, `steps`, `budget_bar`, `product_card`); nuevo turno `ui_action` con `profile_field` aplicado de forma determinista; `input_mode: "ui"`; `ui_version`, `speech`, `ui` en la respuesta y en `GET /recommendation`; API.md actualizado. También se corrigió una condición de carrera de la pregunta de tienda. |
+| Renderizador (iOS) | `ios-generative-canvas` | `1df7a45` … `75213f1` (6) | `UIComponent` con decodificación tolerante (un elemento malo no tira el turno, tipos desconocidos se ignoran), `GenerativeCanvas` sobre el sistema de diseño (texto por rol, chips en flow, slider con "Continuar", paleta con colores a evitar, pasos numerados, tarjeta de producto, barra de presupuesto), integrado en hablando / esperando / final; el stub recorre todo el catálogo. 12 tests de decodificación. |
+| Preview de estilo | `ios-style-preview-fixes` | `67d1d01` … `4391664` (7) | SP-9/12/13 accesibilidad y tokens, SP-2 tercera tarjeta visible con puntos de página, SP-7 X bloqueada al enviar y error visible, SP-8 la voz se detiene al cerrar, SP-6 "Ninguna me convence", SP-16 chips que truncan, SP-5 `why` expandible. |
+
+Tests: iOS 40 de 41 (sigue fallando solo el externo de ElevenLabs); backend toda la suite en verde, tres veces seguidas. Nada verificado visualmente todavía.
+
+Qué falta para la sensación "OpenUI" completa (§9.5 paso B): streaming de la respuesta (speech primero, componentes conforme llegan). Decisiones del contrato v1 a revisar más adelante: `select` siempre `single`; el slider no tiene camino por voz; el backend sigue contando como rechazadas las ideas del preview que el usuario no vio (lado servidor); `product_card.link` abre el navegador; sin cruce entre `steps[].product_ids` y las tarjetas.
+
 ---
 
 ## 7. Cómo validar: pruebas en dispositivo y simulador
