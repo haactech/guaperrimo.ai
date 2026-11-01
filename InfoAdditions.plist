@@ -17,5 +17,7 @@
 	<string>guaperrimo.ai usa reconocimiento de voz para conversar con tu estilista AI.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>guaperrimo.ai necesita el micrófono para entrada de voz.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>guaperrimo.ai usa tu ubicación para recomendarte tiendas cercanas con las prendas de tu lista.</string>
 </dict>
 </plist>

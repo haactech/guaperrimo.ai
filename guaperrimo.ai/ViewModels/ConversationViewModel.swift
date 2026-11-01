@@ -11,6 +11,7 @@ private let logger = Logger(subsystem: "ai.guaperrimo", category: "Conversation"
 
 enum ConversationState: Equatable {
     case loading          // POST /chat in progress
+    case locationConsent  // explain why we want the device location, before the first turn
     case speaking         // TTS playing
     case waitingForInput  // TTS done, show buttons or mic
     case processing       // User responded, waiting for server
@@ -85,6 +86,7 @@ final class ConversationViewModel {
     var forceStyleMirror: Bool = false
 
     let speechService = SpeechRecognitionService()
+    let locationService = LocationService()
     private let stylistService: StylistService
     private let ttsService: TTSService
     private let sessionId: String
@@ -110,8 +112,41 @@ final class ConversationViewModel {
             bootstrapStyleMirror()
             return
         }
-        let request = ChatRequest(type: "image", imageUrl: imageUrl, optionId: nil, transcript: nil)
-        sendRequest(request)
+        if locationService.canAsk {
+            state = .locationConsent
+            return
+        }
+        beginSession()
+    }
+
+    /// Takes a quick device fix when permission was already granted, then opens the session.
+    private func beginSession() {
+        Task {
+            if locationService.isAuthorized {
+                _ = await locationService.requestFix()
+            }
+            sendFirstTurn()
+        }
+    }
+
+    private func sendFirstTurn() {
+        sendRequest(ChatRequest(type: "image", imageUrl: imageUrl, optionId: nil, transcript: nil))
+    }
+
+    // MARK: - Location consent
+
+    /// The user agreed on our screen; the system alert follows and we wait (briefly) for a fix.
+    func allowLocation() {
+        state = .loading
+        Task {
+            _ = await locationService.requestFix()
+            sendFirstTurn()
+        }
+    }
+
+    /// Without a device location the server asks for the area in the conversation.
+    func skipLocation() {
+        sendFirstTurn()
     }
 
     /// Skip conversation and open the Style Mirror immediately with stub looks (DEBUG).
@@ -225,6 +260,10 @@ final class ConversationViewModel {
     }
 
     private func sendRequest(_ request: ChatRequest) {
+        var request = request
+        // Every turn carries the device location (when granted) so the server
+        // knows where to look for stores and never has to ask.
+        request.location = locationService.fix
         if state != .processing {
             state = .loading
         }

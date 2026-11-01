@@ -57,7 +57,6 @@ struct ConversationView: View {
             )
         }
         .onAppear {
-            viewModel.speechService.requestAuthorization()
             viewModel.startConversation()
         }
         .onChange(of: viewModel.speechService.isFinalized) { _, finalized in
@@ -104,6 +103,10 @@ struct ConversationView: View {
     @ViewBuilder
     private var mainContent: some View {
         switch viewModel.state {
+        case .locationConsent:
+            locationConsentView
+                .transition(.opacity)
+
         case .loading:
             ThinkingIndicatorView(message: String(localized: "thinking_first"))
                 .transition(.opacity)
@@ -170,6 +173,54 @@ struct ConversationView: View {
                 }
             }
             .transition(.opacity)
+        }
+    }
+
+    // MARK: - Location consent
+
+    /// Shown once, before the first turn, so the system alert that follows has context.
+    private var locationConsentView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "mappin.and.ellipse")
+                .font(.system(size: 40))
+                .foregroundStyle(.green)
+
+            Text(String(localized: "location_consent_title"))
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+
+            Text(String(localized: "location_consent_body"))
+                .font(.body)
+                .foregroundStyle(.white.opacity(0.75))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+
+            VStack(spacing: 12) {
+                Button {
+                    viewModel.allowLocation()
+                } label: {
+                    Label(String(localized: "location_allow"), systemImage: "location.fill")
+                        .font(.headline)
+                        .foregroundStyle(.black)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(.white, in: Capsule())
+                }
+
+                Button {
+                    viewModel.skipLocation()
+                } label: {
+                    Text(String(localized: "location_skip"))
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.white.opacity(0.7))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Color.white.opacity(0.1), in: Capsule())
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 8)
         }
     }
 
@@ -336,6 +387,11 @@ struct ConversationView: View {
                  : String(localized: "voice_hold_hint"))
                 .font(.caption)
                 .foregroundStyle(.white.opacity(0.6))
+        }
+        .onAppear {
+            // Mic + speech permission are requested when the user is about to speak,
+            // not at session start, so the alerts arrive with context.
+            viewModel.speechService.requestAuthorization()
         }
     }
 
