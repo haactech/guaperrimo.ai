@@ -118,6 +118,8 @@
 "preview_send_comment" = "Enviar a tu estilista";
 "preview_send_error" = "No pudimos enviar tu selección. Intenta de nuevo.";
 "preview_open" = "Ver mis ideas";
+"preview_none" = "Ninguna me convence";
+"preview_none_comment" = "Ninguna de estas ideas me convence";
 "preview_close" = "Cerrar";
 "preview_a11y_selected" = "Seleccionada";
 "preview_a11y_not_selected" = "No seleccionada";

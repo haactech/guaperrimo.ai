@@ -62,6 +62,12 @@ struct ConversationView: View {
                         comment: viewModel.previewComment
                     )
                 },
+                onNone: {
+                    viewModel.sendIdeaSelection(
+                        ids: [],
+                        comment: String(localized: "preview_none_comment")
+                    )
+                },
                 onClose: { viewModel.closeStylePreview() }
             )
         }

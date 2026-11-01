@@ -18,6 +18,7 @@ struct StylePreviewView: View {
     let errorMessage: String?
     let onToggle: (String) -> Void
     let onSend: () -> Void
+    let onNone: () -> Void
     let onClose: () -> Void
 
     @FocusState private var commentFocused: Bool
@@ -202,6 +203,12 @@ struct StylePreviewView: View {
                     )
                 }
             }
+
+            SecondaryButton(title: String(localized: "preview_none"), fullWidth: true) {
+                commentFocused = false
+                onNone()
+            }
+            .disabled(isSending)
         }
     }
 
@@ -646,6 +653,7 @@ private struct StylePreviewPreviewHost: View {
                 if selected.contains(id) { selected.remove(id) } else { selected.insert(id) }
             },
             onSend: { sending = true },
+            onNone: { sending = true },
             onClose: {}
         )
     }

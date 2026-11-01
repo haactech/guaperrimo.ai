@@ -118,6 +118,8 @@
 "preview_send_comment" = "Send to your stylist";
 "preview_send_error" = "We couldn't send your picks. Try again.";
 "preview_open" = "See my ideas";
+"preview_none" = "None of these work for me";
+"preview_none_comment" = "None of these ideas work for me";
 "preview_close" = "Close";
 "preview_a11y_selected" = "Selected";
 "preview_a11y_not_selected" = "Not selected";
