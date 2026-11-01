@@ -120,6 +120,8 @@
 "preview_open" = "Ver mis ideas";
 "preview_none" = "Ninguna me convence";
 "preview_none_comment" = "Ninguna de estas ideas me convence";
+"preview_why_hint" = "Toca para ver el texto completo";
+"preview_why_action" = "Mostrar u ocultar descripción";
 "preview_close" = "Cerrar";
 "preview_a11y_selected" = "Seleccionada";
 "preview_a11y_not_selected" = "No seleccionada";

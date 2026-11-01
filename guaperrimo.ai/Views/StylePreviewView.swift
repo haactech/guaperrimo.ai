@@ -353,6 +353,8 @@ private struct IdeaCardView: View {
     let isSelected: Bool
     let onTap: () -> Void
 
+    @State private var whyExpanded = false
+
     var body: some View {
         Button(action: onTap) {
             VStack(alignment: .leading, spacing: 8) {
@@ -401,8 +403,12 @@ private struct IdeaCardView: View {
                         .font(.caption)
                         .foregroundStyle(DS.textSecondary)
                         .multilineTextAlignment(.leading)
-                        .lineLimit(2)
+                        .lineLimit(whyExpanded ? nil : 3)
                         .fixedSize(horizontal: false, vertical: true)
+                        .contentShape(Rectangle())
+                        .onTapGesture { whyExpanded.toggle() }
+                        .accessibilityHint(String(localized: "preview_why_hint"))
+                        .animation(.easeOut(duration: 0.15), value: whyExpanded)
                 }
 
                 Spacer(minLength: 0)
@@ -428,6 +434,9 @@ private struct IdeaCardView: View {
         .accessibilityLabel(accessibilityDescription)
         .accessibilityValue(isSelected ? String(localized: "preview_a11y_selected") : String(localized: "preview_a11y_not_selected"))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityAction(named: String(localized: "preview_why_action")) {
+            if idea.why?.isEmpty == false { whyExpanded.toggle() }
+        }
     }
 
     private var accessibilityDescription: String {
