@@ -97,7 +97,7 @@
 
 /* My list */
 "shopping_view" = "See my list";
-"shopping_title" = "My list";
+"shopping_title" = "My looks";
 "shopping_empty" = "You haven't saved a list yet. When you like a recommendation, save it and it will be here for your shopping trip.";
 "shopping_no_product" = "We couldn't find an exact product; use the description to look for it in store.";
 "shopping_buy" = "Buy";
@@ -115,10 +115,11 @@
 
 "shopping_like" = "I like this outfit";
 "shopping_liked" = "Saved as favorite";
-"shopping_save_look" = "Save this look to my list";
-"shopping_look_saved" = "Look saved";
 "mylooks_stores_near" = "%d stores nearby";
 "mylooks_store_near_one" = "1 store nearby";
+"mylooks_saved_toast" = "Saved to My looks";
+"mylooks_save_label" = "Save to My looks";
+"mylooks_saved_label" = "Saved to My looks";
 "mylooks_default_plan_name" = "Your style plan";
 
 /* Style preview */

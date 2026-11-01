@@ -75,10 +75,12 @@ struct StyleMirrorView: View {
                         showHints: showHints,
                         overlayOpacity: overlayOpacity,
                         downloadingHint: downloadingHint,
+                        isSaved: viewModel.currentLook.map { viewModel.isSaved($0) } ?? false,
                         onClose: { viewModel.closeLookCarousel() },
                         onCompare: { viewModel.showComparison = true },
                         onPieces: { viewModel.showPieceDetail = true },
-                        onList: { viewModel.showShoppingListInMirror = true }
+                        onList: { viewModel.showShoppingListInMirror = true },
+                        onSave: { viewModel.saveCurrentLook() }
                     )
                 }
             }
@@ -176,7 +178,7 @@ struct StyleMirrorView: View {
         }
         .sheet(isPresented: $viewModel.showPieceDetail) {
             if let look = viewModel.currentLook, !look.pieces.isEmpty {
-                LookPieceSheet(pieces: look.pieces, onSave: { viewModel.saveLook(look) })
+                LookPieceSheet(pieces: look.pieces)
             }
         }
     }

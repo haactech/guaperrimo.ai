@@ -8,9 +8,6 @@ import SwiftUI
 
 struct LookPieceSheet: View {
     let pieces: [LookPieceItem]
-    let onSave: () -> Void
-
-    @State private var saved = false
 
     var body: some View {
         NavigationStack {
@@ -21,26 +18,6 @@ struct LookPieceSheet: View {
                     }
                 }
                 .padding(16)
-            }
-            .safeAreaInset(edge: .bottom) {
-                VStack(spacing: 6) {
-                    PrimaryButton(
-                        title: String(localized: "shopping_save_look"),
-                        systemImage: "bag.badge.plus",
-                        style: .light
-                    ) {
-                        onSave()
-                        saved = true
-                    }
-                    if saved {
-                        Text(String(localized: "shopping_look_saved"))
-                            .font(.caption)
-                            .foregroundStyle(DS.success)
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(DS.bg)
             }
             .background(DS.bg)
             .navigationTitle(String(localized: "looks_pieces_title"))

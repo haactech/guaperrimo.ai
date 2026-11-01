@@ -14,10 +14,14 @@ struct StyleMirrorOverlayView: View {
     let showHints: Bool
     let overlayOpacity: Double
     let downloadingHint: String?
+    let isSaved: Bool
     let onClose: () -> Void
     let onCompare: () -> Void
     let onPieces: () -> Void
     let onList: () -> Void
+    let onSave: () -> Void
+
+    @State private var showSavedToast = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -37,11 +41,18 @@ struct StyleMirrorOverlayView: View {
                 }
             } trailing: {
                 if !isOriginal {
-                    IconButton(
-                        systemName: "square.split.2x1",
-                        accessibilityLabel: String(localized: "tryon_mode_side"),
-                        action: onCompare
-                    )
+                    HStack(spacing: DS.Space.xs) {
+                        IconButton(
+                            systemName: isSaved ? "heart.fill" : "heart",
+                            accessibilityLabel: String(localized: isSaved ? "mylooks_saved_label" : "mylooks_save_label"),
+                            action: save
+                        )
+                        IconButton(
+                            systemName: "square.split.2x1",
+                            accessibilityLabel: String(localized: "tryon_mode_side"),
+                            action: onCompare
+                        )
+                    }
                 } else {
                     HeaderSpacer()
                 }
@@ -102,7 +113,25 @@ struct StyleMirrorOverlayView: View {
             .padding(.bottom, 40)
             .opacity(overlayOpacity)
         }
+        .overlay(alignment: .top) {
+            if showSavedToast {
+                Toast(message: String(localized: "mylooks_saved_toast"))
+                    .padding(.top, 72)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .allowsHitTesting(false)
+            }
+        }
         .animation(.easeOut(duration: 0.15), value: overlayOpacity < 1.0)
+        .animation(.easeInOut(duration: 0.2), value: showSavedToast)
+    }
+
+    private func save() {
+        onSave()
+        showSavedToast = true
+        Task {
+            try? await Task.sleep(for: .milliseconds(1500))
+            showSavedToast = false
+        }
     }
 }
 #endif

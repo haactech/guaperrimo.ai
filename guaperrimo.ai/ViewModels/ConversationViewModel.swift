@@ -465,9 +465,22 @@ final class ConversationViewModel {
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
 
-    /// Saves one Style Mirror look (its products) as the user's shopping list.
-    func saveLook(_ look: LookItem) {
-        var items: [ShoppingItemDTO] = []
+    /// Whether this Style Mirror look is already in "Mis looks".
+    func isSaved(_ look: LookItem) -> Bool {
+        SavedLooksStore.shared.isSaved(sessionId: sessionId, name: look.name)
+    }
+
+    /// Saves the look on screen (image, products and nearby stores) to "Mis looks".
+    /// Returns false when there is nothing to save.
+    @discardableResult
+    func saveCurrentLook() -> Bool {
+        guard let look = currentLook, look.status == "ready" else { return false }
+        return saveLook(look)
+    }
+
+    @discardableResult
+    func saveLook(_ look: LookItem) -> Bool {
+        var products: [ProductDTO] = []
         for piece in look.pieces {
             guard let productId = piece.productId else { continue }
             let product = shoppingList.lazy.flatMap(\.products).first { $0.id == productId }
@@ -484,26 +497,27 @@ final class ConversationViewModel {
                     availability: nil,
                     nearbyStore: nil
                 )
-            items.append(ShoppingItemDTO(slot: piece.slot, description: piece.slotDescription, why: nil, priority: nil, products: [product]))
+            products.append(product)
         }
-        guard !items.isEmpty else {
-            logger.warning("Look \(look.id, privacy: .public) has no products to save")
-            return
-        }
-        let total = items.flatMap(\.products).reduce(0) { $0 + $1.price }
-        let list = SavedShoppingList(
+        let saved = SavedLook(
             sessionId: sessionId,
-            savedAt: Date(),
-            summary: look.name + ": " + look.description,
-            items: items,
+            name: look.name,
+            description: cleanStylistCopy(look.description),
+            finalImageUrl: look.finalImageUrl,
+            originalImageUrl: userImageUrl,
+            pieces: look.pieces.map {
+                SavedLookPiece(slot: $0.slot, slotDescription: $0.slotDescription, productName: $0.productName)
+            },
+            products: products,
             stores: stores,
-            totalMxn: total,
-            purchased: []
+            totalMxn: products.reduce(0) { $0 + $1.price },
+            source: .look
         )
-        ShoppingListStore.shared.save(list)
+        SavedLooksStore.shared.add(saved)
         listSaved = true
         UINotificationFeedbackGenerator().notificationOccurred(.success)
-        logger.info("Saved look \(look.id, privacy: .public) — items: \(items.count, privacy: .public)")
+        logger.info("Saved look \(look.id, privacy: .public) — products: \(products.count, privacy: .public)")
+        return true
     }
 
     // MARK: - Looks
