@@ -12,9 +12,11 @@ import SwiftUI
 struct SetupInstructionView: View {
     let onReady: () -> Void
 
+    @ScaledMetric(relativeTo: .largeTitle) private var illustrationSize: CGFloat = 64
+
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            TexturedBackground()
 
             VStack(spacing: 32) {
                 Spacer()
@@ -22,8 +24,8 @@ struct SetupInstructionView: View {
                 // Setup illustration
                 VStack(spacing: 16) {
                     Image(systemName: "iphone.and.arrow.left.and.arrow.right")
-                        .font(.system(size: 64))
-                        .foregroundStyle(.white.opacity(0.8))
+                        .font(.system(size: illustrationSize))
+                        .foregroundStyle(DS.textSecondary)
 
                     // Distance indicator
                     HStack(spacing: 8) {
@@ -32,30 +34,21 @@ struct SetupInstructionView: View {
                         Text("120 cm")
                             .font(.title3.weight(.semibold))
                     }
-                    .foregroundStyle(.green)
+                    .foregroundStyle(DS.success)
                 }
 
                 // Instruction text
                 Text(String(localized: "onboarding_instruction"))
                     .font(.body)
-                    .foregroundStyle(.white.opacity(0.9))
+                    .foregroundStyle(DS.textPrimary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
 
                 Spacer()
 
                 // Ready button
-                Button {
-                    onReady()
-                } label: {
-                    Text(String(localized: "onboarding_ready"))
-                        .font(.headline)
-                        .foregroundStyle  (.black)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(.white, in: RoundedRectangle(cornerRadius: 14))
-                }
-                .padding(.horizontal, 40)
+                PrimaryButton(title: String(localized: "onboarding_ready"), action: onReady)
+                    .padding(.horizontal, 40)
                 .padding(.bottom, 50)
             }
         }
@@ -162,8 +155,8 @@ struct CameraView: View {
                 if hasSeenOnboarding {
                     Text(String(localized: "setup_banner"))
                         .font(.caption.weight(.medium))
-                        .foregroundStyle(.white.opacity(0.8))
-                        .padding(.horizontal, 16)
+                        .foregroundStyle(DS.textSecondary)
+                        .padding(.horizontal, DS.Space.m)
                         .padding(.vertical, 6)
                         .background(.black.opacity(0.4), in: Capsule())
                         .padding(.top, 52)
@@ -172,8 +165,8 @@ struct CameraView: View {
                 // Positioning instruction
                 Text(instructionText)
                     .font(.callout.weight(.medium))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 20)
+                    .foregroundStyle(DS.textPrimary)
+                    .padding(.horizontal, DS.Space.inset)
                     .padding(.vertical, 10)
                     .background(.black.opacity(0.5), in: Capsule())
                     .padding(.top, hasSeenOnboarding ? 8 : 60)
@@ -219,7 +212,7 @@ struct CameraView: View {
                         if countdownActive {
                             Circle()
                                 .trim(from: 0, to: countdownProgress)
-                                .stroke(.green, style: StrokeStyle(lineWidth: 5, lineCap: .round))
+                                .stroke(DS.success, style: StrokeStyle(lineWidth: 5, lineCap: .round))
                                 .rotationEffect(.degrees(-90))
                                 .frame(width: 90, height: 90)
 
@@ -259,8 +252,8 @@ struct CameraView: View {
                             showShoppingList = true
                         } label: {
                             Image(systemName: "bag.fill")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundStyle(.white)
+                                .font(.headline)
+                                .foregroundStyle(DS.textPrimary)
                                 .frame(width: 44, height: 44)
                                 .background(.black.opacity(0.45), in: Circle())
                         }
@@ -362,9 +355,9 @@ struct CameraView: View {
         case .tooClose, .tooFar, .offCenter:
             return Color.white.opacity(0.25)
         case .aligned:
-            return Color.green.opacity(0.7)
+            return DS.success.opacity(0.7)
         case .stillConfirmed:
-            return Color.green
+            return DS.success
         }
     }
 
