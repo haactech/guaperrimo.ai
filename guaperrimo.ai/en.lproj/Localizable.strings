@@ -27,6 +27,12 @@
 "camera_permission_message" = "guaperrimo.ai needs camera access to capture photos of your outfit and analyze your style.";
 "open_settings" = "Open Settings";
 
+/* Location */
+"location_consent_title" = "Shop near you?";
+"location_consent_body" = "With your location the stylist recommends pieces you can go see today, in stores a few steps away. We only use it during this session.";
+"location_allow" = "Use my location";
+"location_skip" = "Not now";
+
 /* Conversation */
 "thinking" = "Analyzing your style…";
 "thinking_first" = "Looking at your outfit…";

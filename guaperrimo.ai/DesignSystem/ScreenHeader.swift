@@ -1,0 +1,71 @@
+//
+//  ScreenHeader.swift
+//  guaperrimo.ai
+//
+
+import SwiftUI
+
+/// Round 36pt icon button (close, compare, bag...). Always pass an accessibility label.
+struct IconButton: View {
+    let systemName: String
+    let accessibilityLabel: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(DS.textSecondary)
+                .frame(width: 36, height: 36)
+                .background(DS.surfaceRaised, in: Circle())
+                .contentShape(Circle().inset(by: -4)) // 44pt hit area, 36pt look
+        }
+        .accessibilityLabel(accessibilityLabel)
+    }
+}
+
+/// Top bar: leading slot (usually the close button), centered title, trailing slot.
+struct ScreenHeader<Leading: View, Trailing: View>: View {
+    let title: String
+    @ViewBuilder var leading: Leading
+    @ViewBuilder var trailing: Trailing
+
+    var body: some View {
+        HStack {
+            leading
+            Spacer()
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(DS.textPrimary)
+                .lineLimit(1)
+            Spacer()
+            trailing
+        }
+        .padding(.horizontal, DS.Space.m)
+        .padding(.top, DS.Space.xs)
+        .padding(.bottom, DS.Space.s)
+    }
+}
+
+extension ScreenHeader where Trailing == HeaderSpacer {
+    /// Header with a 36pt spacer on the trailing side.
+    init(title: String, @ViewBuilder leading: () -> Leading) {
+        self.title = title
+        self.leading = leading()
+        self.trailing = HeaderSpacer()
+    }
+}
+
+extension ScreenHeader where Leading == IconButton, Trailing == HeaderSpacer {
+    /// Header with a close (X) button and a 36pt spacer.
+    init(title: String, closeLabel: String, onClose: @escaping () -> Void) {
+        self.title = title
+        self.leading = IconButton(systemName: "xmark", accessibilityLabel: closeLabel, action: onClose)
+        self.trailing = HeaderSpacer()
+    }
+}
+
+/// Invisible 36pt block that balances the title when there is no trailing control.
+struct HeaderSpacer: View {
+    var body: some View { Color.clear.frame(width: 36, height: 36) }
+}

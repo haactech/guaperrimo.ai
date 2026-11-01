@@ -7,38 +7,34 @@
 import SwiftUI
 
 struct CameraPermissionView: View {
+    @ScaledMetric(relativeTo: .largeTitle) private var iconSize: CGFloat = 60
+
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            TexturedBackground()
 
             VStack(spacing: 24) {
                 Image(systemName: "camera.fill")
-                    .font(.system(size: 60))
-                    .foregroundStyle(.white.opacity(0.7))
+                    .font(.system(size: iconSize))
+                    .foregroundStyle(DS.textSecondary)
 
                 Text(String(localized: "camera_permission_title"))
                     .font(.title2.bold())
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DS.textPrimary)
                     .multilineTextAlignment(.center)
 
                 Text(String(localized: "camera_permission_message"))
                     .font(.body)
-                    .foregroundStyle(.white.opacity(0.7))
+                    .foregroundStyle(DS.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
 
-                Button {
+                PrimaryButton(title: String(localized: "open_settings")) {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(url)
                     }
-                } label: {
-                    Text(String(localized: "open_settings"))
-                        .font(.headline)
-                        .foregroundStyle(.black)
-                        .padding(.horizontal, 32)
-                        .padding(.vertical, 14)
-                        .background(.white, in: Capsule())
                 }
+                .padding(.horizontal, 32)
                 .padding(.top, 8)
             }
         }

@@ -15,6 +15,7 @@ nonisolated struct ChatRequest: Codable, Sendable {
     let transcript: String?    // solo type=voice_response
     var selectedIdeas: [String]? = nil // solo type=idea_selection
     var text: String? = nil            // solo type=idea_selection (comentario opcional)
+    var location: DeviceLocation? = nil // cualquier turno: ubicación del dispositivo, si el usuario la permitió
 }
 
 // MARK: - Response

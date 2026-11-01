@@ -15,7 +15,7 @@ struct ShoppingListView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            TexturedBackground()
 
             VStack(spacing: 0) {
                 header
@@ -33,8 +33,8 @@ struct ShoppingListView: View {
                                 storesSection(list.stores)
                             }
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 16)
+                        .padding(.horizontal, DS.Space.inset)
+                        .padding(.vertical, DS.Space.m)
                     }
                 } else {
                     emptyState
@@ -46,30 +46,11 @@ struct ShoppingListView: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack {
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.7))
-                    .frame(width: 36, height: 36)
-                    .background(Color.white.opacity(0.1), in: Circle())
-            }
-
-            Spacer()
-
-            Text(String(localized: "shopping_title"))
-                .font(.headline)
-                .foregroundStyle(.white)
-
-            Spacer()
-
-            Color.clear.frame(width: 36, height: 36)
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .padding(.bottom, 12)
+        ScreenHeader(
+            title: String(localized: "shopping_title"),
+            closeLabel: String(localized: "preview_close"),
+            onClose: { dismiss() }
+        )
     }
 
     // MARK: - Summary
@@ -78,7 +59,7 @@ struct ShoppingListView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(cleanStylistCopy(list.summary))
                 .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.85))
+                .foregroundStyle(DS.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
 
             HStack {
@@ -90,11 +71,11 @@ struct ShoppingListView: View {
                 }
             }
             .font(.caption)
-            .foregroundStyle(.white.opacity(0.6))
+            .foregroundStyle(DS.textSecondary)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+        .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.m))
     }
 
     // MARK: - Items
@@ -105,23 +86,23 @@ struct ShoppingListView: View {
                 Text(slotLabel(item.slot).uppercased())
                     .font(.caption2.weight(.semibold))
                     .tracking(1)
-                    .foregroundStyle(.white.opacity(0.5))
+                    .foregroundStyle(DS.textTertiary)
                 Text(item.displayDescription)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DS.textPrimary)
             }
 
             if let why = item.displayWhy {
                 Text(why)
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.7))
+                    .foregroundStyle(DS.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             if item.products.isEmpty {
                 Text(String(localized: "shopping_no_product"))
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.5))
+                    .foregroundStyle(DS.textTertiary)
             }
 
             ForEach(item.products) { product in
@@ -138,13 +119,13 @@ struct ShoppingListView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(product.title)
                         .font(.subheadline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DS.textPrimary)
                         .lineLimit(2)
-                        .strikethrough(purchased, color: .white.opacity(0.6))
+                        .strikethrough(purchased, color: DS.textSecondary)
 
                     Text(product.priceAndStoreLabel)
                         .font(.caption.weight(.medium))
-                        .foregroundStyle(.white.opacity(0.85))
+                        .foregroundStyle(DS.textSecondary)
 
                     locationLine(product, nearby: nearby)
                 }
@@ -156,8 +137,8 @@ struct ShoppingListView: View {
                     store.togglePurchased(product.id)
                 } label: {
                     Image(systemName: purchased ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 24))
-                        .foregroundStyle(purchased ? .green : .white.opacity(0.4))
+                        .font(.title2)
+                        .foregroundStyle(purchased ? DS.success : DS.textTertiary)
                 }
                 .accessibilityLabel(String(localized: "shopping_mark"))
             }
@@ -172,7 +153,7 @@ struct ShoppingListView: View {
             }
         }
         .padding(12)
-        .background(Color.white.opacity(purchased ? 0.04 : 0.08), in: RoundedRectangle(cornerRadius: 14))
+        .background(purchased ? DS.surface.opacity(0.5) : DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.m))
     }
 
     @ViewBuilder
@@ -184,7 +165,7 @@ struct ShoppingListView: View {
                 Image(systemName: "figure.walk")
             }
             .font(.caption)
-            .foregroundStyle(.green)
+            .foregroundStyle(DS.success)
         } else {
             let detail = [product.availability, product.delivery].compactMap { $0 }.filter { !$0.isEmpty }.first
             Label {
@@ -193,7 +174,7 @@ struct ShoppingListView: View {
                 Image(systemName: "shippingbox")
             }
             .font(.caption)
-            .foregroundStyle(.white.opacity(0.6))
+            .foregroundStyle(DS.textSecondary)
         }
     }
 
@@ -205,27 +186,19 @@ struct ShoppingListView: View {
                     case .success(let image):
                         image.resizable().aspectRatio(contentMode: .fill)
                     default:
-                        Color.white.opacity(0.08)
+                        DS.surfaceRaised
                     }
                 }
             } else {
-                Color.white.opacity(0.08)
+                DS.surfaceRaised
             }
         }
         .frame(width: 64, height: 64)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.s))
     }
 
     private func actionButton(_ title: String, icon: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Label(title, systemImage: icon)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .frame(minHeight: 36)
-                .background(Color.white.opacity(0.15), in: Capsule())
-        }
+        SecondaryButton(title: title, systemImage: icon, size: .small, action: action)
     }
 
     // MARK: - Stores
@@ -234,7 +207,7 @@ struct ShoppingListView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(String(localized: "shopping_stores_title"))
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(DS.textPrimary)
 
             ForEach(stores) { s in
                 Button {
@@ -242,23 +215,23 @@ struct ShoppingListView: View {
                 } label: {
                     HStack(spacing: 12) {
                         Image(systemName: "mappin.and.ellipse")
-                            .foregroundStyle(.green)
+                            .foregroundStyle(DS.success)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(s.name)
                                 .font(.subheadline)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(DS.textPrimary)
                             Text([s.address, s.openState].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))
                                 .font(.caption)
-                                .foregroundStyle(.white.opacity(0.6))
+                                .foregroundStyle(DS.textSecondary)
                                 .lineLimit(2)
                         }
                         Spacer()
                         Text(distanceLabel(s.distanceM))
                             .font(.caption.weight(.medium))
-                            .foregroundStyle(.white.opacity(0.8))
+                            .foregroundStyle(DS.textSecondary)
                     }
                     .padding(12)
-                    .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                    .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.s))
                 }
             }
         }
@@ -270,11 +243,11 @@ struct ShoppingListView: View {
         VStack(spacing: 16) {
             Spacer()
             Image(systemName: "bag")
-                .font(.system(size: 40))
-                .foregroundStyle(.white.opacity(0.4))
+                .font(.largeTitle)
+                .foregroundStyle(DS.textTertiary)
             Text(String(localized: "shopping_empty"))
                 .font(.body)
-                .foregroundStyle(.white.opacity(0.7))
+                .foregroundStyle(DS.textSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
             Spacer()

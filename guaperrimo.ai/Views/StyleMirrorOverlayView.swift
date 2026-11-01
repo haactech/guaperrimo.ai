@@ -22,48 +22,30 @@ struct StyleMirrorOverlayView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Top bar
-            HStack {
-                Button(action: onClose) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.7))
-                        .frame(width: 36, height: 36)
-                        .background(Color.white.opacity(0.1), in: Circle())
+            ScreenHeader(title: itemName) {
+                HStack(spacing: DS.Space.xs) {
+                    IconButton(
+                        systemName: "xmark",
+                        accessibilityLabel: String(localized: "preview_close"),
+                        action: onClose
+                    )
+                    IconButton(
+                        systemName: "bag.fill",
+                        accessibilityLabel: String(localized: "shopping_title"),
+                        action: onList
+                    )
                 }
-
-                Button(action: onList) {
-                    Image(systemName: "bag.fill")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.7))
-                        .frame(width: 36, height: 36)
-                        .background(Color.white.opacity(0.1), in: Circle())
-                }
-                .accessibilityLabel(String(localized: "shopping_title"))
-
-                Spacer()
-
-                Text(itemName)
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-
-                Spacer()
-
+            } trailing: {
                 if !isOriginal {
-                    Button(action: onCompare) {
-                        Image(systemName: "square.split.2x1")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.7))
-                            .frame(width: 36, height: 36)
-                            .background(Color.white.opacity(0.1), in: Circle())
-                    }
+                    IconButton(
+                        systemName: "square.split.2x1",
+                        accessibilityLabel: String(localized: "tryon_mode_side"),
+                        action: onCompare
+                    )
                 } else {
-                    Color.clear.frame(width: 36, height: 36)
+                    HeaderSpacer()
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
-            .padding(.bottom, 12)
             .opacity(overlayOpacity)
 
             Spacer()
@@ -73,15 +55,15 @@ struct StyleMirrorOverlayView: View {
                 HStack {
                     if currentIndex > 0 {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 24, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.3))
+                            .font(.title2.weight(.medium))
+                            .foregroundStyle(DS.stroke)
                             .padding(.leading, 8)
                     }
                     Spacer()
                     if currentIndex < totalCount - 1 {
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 24, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.3))
+                            .font(.title2.weight(.medium))
+                            .foregroundStyle(DS.stroke)
                             .padding(.trailing, 8)
                     }
                 }
@@ -95,7 +77,7 @@ struct StyleMirrorOverlayView: View {
                 if let hint = downloadingHint {
                     Text(hint)
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.6))
+                        .foregroundStyle(DS.textSecondary)
                         .transition(.opacity)
                 }
 
@@ -104,7 +86,7 @@ struct StyleMirrorOverlayView: View {
                     HStack(spacing: 8) {
                         ForEach(0..<totalCount, id: \.self) { index in
                             Circle()
-                                .fill(index == currentIndex ? Color.white : Color.white.opacity(0.3))
+                                .fill(index == currentIndex ? DS.textPrimary : DS.textTertiary)
                                 .frame(width: index == currentIndex ? 8 : 6,
                                        height: index == currentIndex ? 8 : 6)
                                 .animation(.easeInOut(duration: 0.2), value: currentIndex)
@@ -114,15 +96,7 @@ struct StyleMirrorOverlayView: View {
 
                 // "See garments" button (only for looks, not original)
                 if !isOriginal {
-                    Button(action: onPieces) {
-                        Text(String(localized: "looks_pieces"))
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 12)
-                            .background(Color.white.opacity(0.1), in: Capsule())
-                            .overlay(Capsule().stroke(Color.white.opacity(0.2), lineWidth: 1))
-                    }
+                    SecondaryButton(title: String(localized: "looks_pieces"), action: onPieces)
                 }
             }
             .padding(.bottom, 40)
