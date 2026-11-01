@@ -174,7 +174,7 @@ struct StyleMirrorView: View {
             }
         }
         .sheet(isPresented: $viewModel.showShoppingListInMirror) {
-            ShoppingListView()
+            MyLooksView()
         }
         .sheet(isPresented: $viewModel.showPieceDetail) {
             if let look = viewModel.currentLook, !look.pieces.isEmpty {

@@ -98,7 +98,7 @@
 /* My list */
 "shopping_view" = "My looks";
 "shopping_title" = "My looks";
-"shopping_empty" = "You haven't saved a list yet. When you like a recommendation, save it and it will be here for your shopping trip.";
+"shopping_empty" = "You have not saved any look yet. Tap the heart in the mirror and it will be here, with its pieces and nearby stores.";
 "shopping_no_product" = "We couldn't find an exact product; use the description to look for it in store.";
 "shopping_buy" = "Buy";
 "shopping_directions" = "Directions";
@@ -118,6 +118,14 @@
 "mylooks_saved_toast" = "Saved to My looks";
 "mylooks_save_label" = "Save to My looks";
 "mylooks_saved_label" = "Saved to My looks";
+"mylooks_tab_looks" = "Looks";
+"mylooks_tab_shopping" = "Shopping";
+"mylooks_delete" = "Delete";
+"mylooks_already_have" = "Already yours";
+"mylooks_shopping_empty" = "There is nothing to buy in your looks.";
+"mylooks_item_one" = "1 item";
+"mylooks_items_other" = "%d items";
+"shopping_view_product" = "View product";
 "mylooks_default_plan_name" = "Your style plan";
 
 /* Style preview */

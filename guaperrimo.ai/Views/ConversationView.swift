@@ -47,7 +47,7 @@ struct ConversationView: View {
             StyleMirrorView(viewModel: viewModel)
         }
         .sheet(isPresented: $viewModel.showShoppingList) {
-            ShoppingListView()
+            MyLooksView()
         }
         .fullScreenCover(isPresented: $viewModel.showStylePreview) {
             StylePreviewView(

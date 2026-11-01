@@ -130,3 +130,46 @@ import Testing
         #expect(SavedLook.planName(from: "") == String(localized: "mylooks_default_plan_name"))
     }
 }
+
+@MainActor
+@Suite struct ShoppingBasketTests {
+    private func product(_ id: String, price: Double, store: String? = nil) -> ProductDTO {
+        ProductDTO(
+            id: id, title: id, store: "ML", price: price, currency: "MXN", link: nil, thumbnail: nil,
+            largeImage: nil, delivery: nil, availability: nil,
+            nearbyStore: store.map { NearbyStoreRef(placeId: $0, name: $0, distanceM: 100) }
+        )
+    }
+
+    private func storeDTO(_ id: String, distance: Int) -> StoreDTO {
+        StoreDTO(placeId: id, name: id, address: "", lat: 0, lng: 0, distanceM: distance, rating: nil, openState: nil, website: nil, phone: nil)
+    }
+
+    private func look(_ id: String, products: [ProductDTO], stores: [StoreDTO], purchased: Set<String> = []) -> SavedLook {
+        SavedLook(
+            id: id, sessionId: id, name: id, description: "", finalImageUrl: nil, originalImageUrl: nil,
+            pieces: [], products: products, stores: stores, totalMxn: 0, purchased: purchased, source: .look
+        )
+    }
+
+    @Test func dedupesGroupsByStoreAndMovesPurchasedLast() {
+        let far = storeDTO("far", distance: 900)
+        let near = storeDTO("near", distance: 200)
+        let a = look("a", products: [product("1", price: 100, store: "far"), product("2", price: 50)], stores: [far, near])
+        let b = look("b", products: [product("1", price: 100, store: "far"), product("3", price: 30, store: "near"), product("4", price: 20, store: "near")], stores: [far, near], purchased: ["4"])
+        let basket = ShoppingBasket(looks: [a, b])
+
+        #expect(basket.pending.map(\.id) == ["near", "far", "online"])
+        #expect(basket.pendingEntries.map(\.product.id) == ["3", "1", "2"])
+        #expect(basket.purchased.map(\.product.id) == ["4"])
+        #expect(basket.totalMxn == 180)
+        #expect(basket.itemCount == 3)
+        #expect(basket.nearbyStoreCount == 2)
+    }
+
+    @Test func googleLinksAreNotDirectStoreLinks() {
+        #expect(!isDirectStoreLink("https://www.google.com/shopping/product/123"))
+        #expect(isDirectStoreLink("https://articulo.mercadolibre.com.mx/MLM-1"))
+        #expect(!isDirectStoreLink("not a url"))
+    }
+}

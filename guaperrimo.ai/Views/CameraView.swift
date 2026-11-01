@@ -93,7 +93,7 @@ struct ShakeDetector: UIViewRepresentable {
 // MARK: - Main camera view
 
 struct CameraView: View {
-    @State private var shoppingStore = ShoppingListStore.shared
+    @State private var looksStore = SavedLooksStore.shared
     @State private var showShoppingList = false
     @State private var cameraManager = CameraManager()
     @State private var countdownRemaining: Int = 0
@@ -245,7 +245,7 @@ struct CameraView: View {
             }
 
             // Layer 3b: shortcut to the saved shopping list
-            if shoppingStore.hasList {
+            if looksStore.hasLooks {
                 VStack {
                     HStack {
                         Button {
@@ -294,7 +294,7 @@ struct CameraView: View {
         }
         .statusBarHidden()
         .sheet(isPresented: $showShoppingList) {
-            ShoppingListView()
+            MyLooksView()
         }
         .onChange(of: posState) { oldState, newState in
             handleStateChange(from: oldState, to: newState)
