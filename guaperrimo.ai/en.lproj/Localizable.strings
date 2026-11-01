@@ -41,21 +41,11 @@
 "voice_error" = "Couldn't understand you. Try again.";
 
 /* Try-On */
-"tryon_button" = "See how it looks on me";
-"tryon_cancel" = "Cancel";
 "tryon_done" = "Done";
-"tryon_title" = "Virtual try-on";
 "tryon_before" = "Before";
 "tryon_after" = "After";
 "tryon_mode_side" = "Side by side";
 "tryon_mode_slider" = "Slider";
-"tryon_error_title" = "Couldn't generate the try-on";
-"tryon_retry" = "Try again";
-"tryon_back" = "Back to recommendations";
-"tryon_progress_1" = "Finding the perfect garment…";
-"tryon_progress_2" = "Adjusting to your silhouette…";
-"tryon_progress_3" = "Almost ready…";
-"tryon_progress_4" = "Final touches…";
 
 /* Looks */
 "looks_preparing" = "Generating your looks…";

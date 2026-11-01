@@ -41,21 +41,11 @@
 "voice_error" = "No te entendí. Intenta de nuevo.";
 
 /* Try-On */
-"tryon_button" = "Ver cómo me quedaría";
-"tryon_cancel" = "Cancelar";
 "tryon_done" = "Listo";
-"tryon_title" = "Prueba virtual";
 "tryon_before" = "Antes";
 "tryon_after" = "Después";
 "tryon_mode_side" = "Lado a lado";
 "tryon_mode_slider" = "Deslizar";
-"tryon_error_title" = "No pudimos generar la prueba";
-"tryon_retry" = "Intentar de nuevo";
-"tryon_back" = "Volver a recomendaciones";
-"tryon_progress_1" = "Buscando la prenda perfecta…";
-"tryon_progress_2" = "Ajustando a tu silueta…";
-"tryon_progress_3" = "Casi listo…";
-"tryon_progress_4" = "Últimos detalles…";
 
 /* Looks */
 "looks_preparing" = "Generando tus looks…";
