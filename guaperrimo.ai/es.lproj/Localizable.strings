@@ -43,8 +43,11 @@
 "thinking" = "Analizando tu estilo…";
 "thinking_first" = "Mirando tu outfit…";
 "thinking_next" = "Pensando…";
-"voice_hold_hint" = "Mantén presionado para hablar";
-"voice_listening" = "Escuchando…";
+"voice_tap_hint" = "Toca para hablar";
+"voice_tap_stop" = "Toca para terminar";
+"voice_send_now" = "Enviar ahora";
+"voice_empty" = "No te escuché, intenta otra vez";
+"voice_cancel_auto" = "Detener el envío automático";
 "voice_send" = "Enviar";
 "voice_retry" = "Repetir";
 "mic_denied" = "guaperrimo.ai necesita acceso al micrófono. Actívalo en Ajustes.";
