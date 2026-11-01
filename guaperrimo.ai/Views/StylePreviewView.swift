@@ -85,6 +85,7 @@ struct StylePreviewView: View {
             closeLabel: String(localized: "preview_close"),
             onClose: onClose
         )
+        .disabled(isSending) // closing mid-send would hide the result or the error
     }
 
     // MARK: - Brief
