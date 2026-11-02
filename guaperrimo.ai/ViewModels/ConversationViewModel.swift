@@ -29,6 +29,10 @@ final class ConversationViewModel {
     /// Generative UI components of the current turn; empty means the legacy message + options layout.
     var currentUI: [UIComponent] = []
     var isSpeaking: Bool = false
+    /// What the stylist is doing right now (from the stream); nil falls back to the generic text.
+    var progressText: String? = nil
+    /// Everything said so far, oldest first (stylist messages and the user's answers).
+    var history: [ConversationEntry] = []
 
     // Shopping list (final turn)
     var shoppingList: [ShoppingItemDTO] = []
@@ -96,6 +100,8 @@ final class ConversationViewModel {
     private var lookPollingTask: Task<Void, Never>?
     private var lookAutoOpenTask: Task<Void, Never>?
     private var pollingElapsed: TimeInterval = 0
+    /// The last request sent, kept so `retry()` repeats it instead of restarting the session.
+    private var lastRequest: ChatRequest?
 
     init(
         sessionId: String,
@@ -216,6 +222,7 @@ final class ConversationViewModel {
 
     func selectOption(_ option: ChatOption) {
         state = .processing
+        history.append(ConversationEntry(role: .user, text: option.label))
         let request = ChatRequest(type: "button_response", imageUrl: nil, optionId: option.id, transcript: nil)
         sendRequest(request)
     }
@@ -224,6 +231,10 @@ final class ConversationViewModel {
     /// Chips are answered through `selectOption`, the existing button path.
     func sendUIAction(componentId: String, value: String) {
         state = .processing
+        let answer = componentId == "budget"
+            ? String(format: String(localized: "history_budget"), value)
+            : "\(componentId): \(value)"
+        history.append(ConversationEntry(role: .user, text: answer))
         let request = ChatRequest(
             type: "ui_action", imageUrl: nil, optionId: nil, transcript: nil,
             componentId: componentId, value: value
@@ -234,6 +245,7 @@ final class ConversationViewModel {
     func sendVoiceResponse(_ transcript: String) {
         guard !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         state = .processing
+        history.append(ConversationEntry(role: .user, text: transcript.trimmingCharacters(in: .whitespacesAndNewlines)))
         let request = ChatRequest(type: "voice_response", imageUrl: nil, optionId: nil, transcript: transcript)
         sendRequest(request)
     }
@@ -273,6 +285,9 @@ final class ConversationViewModel {
         isSendingSelection = true
         previewError = nil
         state = .processing
+        var answer = ids.isEmpty ? "" : String(format: String(localized: "history_ideas"), ids.count)
+        if !text.isEmpty { answer += (answer.isEmpty ? "" : "\n") + text }
+        history.append(ConversationEntry(role: .user, text: answer))
         let request = ChatRequest(
             type: "idea_selection", imageUrl: nil, optionId: nil, transcript: nil,
             selectedIdeas: ids.isEmpty ? nil : ids,
@@ -281,8 +296,34 @@ final class ConversationViewModel {
         sendRequest(request)
     }
 
+    /// Re-sends the request that failed (not a new image turn); a first-turn failure
+    /// before any request existed restarts the conversation.
     func retry() {
-        startConversation()
+        guard let request = lastRequest else {
+            startConversation()
+            return
+        }
+        state = request.type == "image" ? .loading : .processing
+        sendRequest(request)
+    }
+
+    /// Maps a transport or server failure to a specific, actionable message.
+    static func errorMessage(for error: Error) -> String {
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .timedOut:
+                return String(localized: "error_timeout")
+            case .notConnectedToInternet, .networkConnectionLost, .cannotConnectToHost:
+                return String(localized: "error_offline")
+            default:
+                break
+            }
+        }
+        if case APIError.serverError(let status, _) = error {
+            if status == 504 { return String(localized: "error_timeout") }
+            if (500...599).contains(status) { return String(localized: "error_server") }
+        }
+        return String(localized: "error_generic")
     }
 
     private func sendRequest(_ request: ChatRequest) {
@@ -290,6 +331,7 @@ final class ConversationViewModel {
         // Every turn carries the device location (when granted) so the server
         // knows where to look for stores and never has to ask.
         request.location = locationService.fix
+        lastRequest = request
         if state != .processing {
             state = .loading
         }
@@ -297,26 +339,52 @@ final class ConversationViewModel {
 
         Task {
             do {
-                let response = try await stylistService.chat(sessionId: sessionId, request: request)
+                let response = try await stylistService.chatStream(sessionId: sessionId, request: request) { [weak self] progress in
+                    Task { @MainActor in self?.progressText = Self.progressText(for: progress) }
+                }
                 await handleResponse(response)
             } catch {
                 logger.error("Chat failed: \(String(describing: error), privacy: .public)")
+                progressText = nil
                 if isSendingSelection {
                     // Keep the preview open so the user can retry without losing his picks.
                     isSendingSelection = false
                     previewError = String(localized: "preview_send_error")
                     state = .waitingForInput
                 } else {
-                    state = .error(String(localized: "error_generic"))
+                    state = .error(Self.errorMessage(for: error))
                 }
             }
         }
     }
 
+    /// Spanish line for a stream stage; unknown stages keep the generic text.
+    static func progressText(for progress: ChatProgress) -> String? {
+        switch progress.stage {
+        case "analyzing_photo": return String(localized: "progress_analyzing_photo")
+        case "finding_stores": return String(localized: "progress_finding_stores")
+        case "geocoding": return String(localized: "progress_geocoding")
+        case "thinking": return String(localized: "progress_thinking")
+        case "searching_products":
+            let detail = progress.detail?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            return detail.isEmpty
+                ? String(localized: "progress_searching_generic")
+                : String(format: String(localized: "progress_searching_products"), detail)
+        case "proposing_preview": return String(localized: "progress_proposing_preview")
+        case "composing": return String(localized: "progress_composing")
+        default: return nil
+        }
+    }
+
     private func handleResponse(_ response: ChatResponse) async {
+        progressText = nil
         logger.info("Handling response — phase: \(response.phase), turn: \(response.turn), isFinal: \(response.isFinal)")
 
         currentMessage = response.message
+        let stylistLine = response.message.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !stylistLine.isEmpty {
+            history.append(ConversationEntry(role: .stylist, text: stylistLine))
+        }
         currentOptions = response.options ?? []
         currentInputMode = response.inputMode
         currentUI = response.ui ?? []

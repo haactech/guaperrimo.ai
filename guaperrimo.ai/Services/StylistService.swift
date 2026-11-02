@@ -15,6 +15,19 @@ private let logger = Logger(subsystem: "ai.guaperrimo", category: "StylistServic
 protocol StylistService: Sendable {
     func chat(sessionId: String, request: ChatRequest) async throws -> ChatResponse
     func fetchLooks(sessionId: String) async throws -> LooksResponse
+    /// Same as `chat`, but reports what the stylist is doing while the turn is prepared.
+    func chatStream(sessionId: String, request: ChatRequest, onStatus: @Sendable @escaping (ChatProgress) -> Void) async throws -> ChatResponse
+}
+
+extension StylistService {
+    func chatStream(sessionId: String, request: ChatRequest, onStatus: @Sendable @escaping (ChatProgress) -> Void) async throws -> ChatResponse {
+        try await chat(sessionId: sessionId, request: request)
+    }
+}
+
+nonisolated private struct StreamFailure: Decodable, Sendable {
+    let status: Int?
+    let message: String?
 }
 
 // MARK: - Live implementation
@@ -31,6 +44,77 @@ struct LiveStylistService: StylistService {
         )
         logger.info("⬇️ Chat response — phase: \(response.phase), turn: \(response.turn), isFinal: \(response.isFinal)")
         return response
+    }
+
+    /// POST /chat/stream (SSE). An old backend answers 404/405 and we fall back to POST /chat.
+    /// An `error` event or a stream that ends without a `turn` throws; nothing is retried here.
+    func chatStream(sessionId: String, request: ChatRequest, onStatus: @Sendable @escaping (ChatProgress) -> Void) async throws -> ChatResponse {
+        let path = "/session/\(sessionId)/chat/stream"
+        guard let url = URL(string: "\(APIClient.baseURL)\(path)") else { throw APIError.invalidURL }
+
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "POST"
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+        urlRequest.timeoutInterval = 180
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        urlRequest.httpBody = try encoder.encode(request)
+
+        logger.info("⬆️ POST \(url.absoluteString, privacy: .public) (stream) — type: \(request.type, privacy: .public)")
+
+        let (bytes, response) = try await URLSession.shared.bytes(for: urlRequest)
+        guard let http = response as? HTTPURLResponse else { throw APIError.invalidResponse }
+        logger.info("⬇️ HTTP \(http.statusCode, privacy: .public) (stream)")
+
+        if http.statusCode == 404 || http.statusCode == 405 {
+            logger.warning("Stream endpoint unavailable (\(http.statusCode, privacy: .public)) — falling back to /chat")
+            return try await chat(sessionId: sessionId, request: request)
+        }
+        guard (200...299).contains(http.statusCode) else {
+            var body = Data()
+            for try await byte in bytes { body.append(byte); if body.count > 4096 { break } }
+            throw APIError.serverError(statusCode: http.statusCode, message: String(decoding: body, as: UTF8.self))
+        }
+
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+        func handle(_ event: SSEEvent) throws -> ChatResponse? {
+            logger.info("SSE event: \(event.event, privacy: .public) — \(event.data, privacy: .public)")
+            let data = Data(event.data.utf8)
+            switch event.event {
+            case "status":
+                if let progress = try? decoder.decode(ChatProgress.self, from: data) { onStatus(progress) }
+                return nil
+            case "turn":
+                do {
+                    return try decoder.decode(ChatResponse.self, from: data)
+                } catch {
+                    logger.error("❌ Decode error: \(String(describing: error), privacy: .public)")
+                    throw APIError.decodingFailed(underlying: error, body: event.data)
+                }
+            case "error":
+                let failure = try? decoder.decode(StreamFailure.self, from: data)
+                throw APIError.serverError(statusCode: failure?.status ?? 500, message: failure?.message ?? event.data)
+            default:
+                return nil
+            }
+        }
+
+        // `bytes.lines` drops blank lines, which are the event delimiters, so split by hand.
+        var parser = SSEParser()
+        var buffer: [UInt8] = []
+        for try await byte in bytes {
+            guard byte == 0x0A else { buffer.append(byte); continue }
+            let line = String(decoding: buffer, as: UTF8.self)
+            buffer.removeAll(keepingCapacity: true)
+            if let event = parser.push(line: line), let turn = try handle(event) { return turn }
+        }
+        if !buffer.isEmpty, let event = parser.push(line: String(decoding: buffer, as: UTF8.self)), let turn = try handle(event) { return turn }
+        if let event = parser.finish(), let turn = try handle(event) { return turn }
+
+        throw APIError.invalidResponse // stream closed without a turn
     }
 
     func fetchLooks(sessionId: String) async throws -> LooksResponse {
@@ -157,6 +241,14 @@ struct StubStylistService: StylistService {
                 )
             }
         }
+    }
+
+    /// Emits two fake statuses so the progress line can be seen in previews.
+    func chatStream(sessionId: String, request: ChatRequest, onStatus: @Sendable @escaping (ChatProgress) -> Void) async throws -> ChatResponse {
+        onStatus(ChatProgress(stage: request.type == "image" ? "analyzing_photo" : "thinking", detail: nil))
+        try await Task.sleep(for: .milliseconds(600))
+        onStatus(ChatProgress(stage: "searching_products", detail: "botas chelsea"))
+        return try await chat(sessionId: sessionId, request: request)
     }
 
     func chat(sessionId: String, request: ChatRequest) async throws -> ChatResponse {

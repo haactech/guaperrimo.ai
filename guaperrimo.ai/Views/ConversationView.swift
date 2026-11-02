@@ -9,7 +9,9 @@ import SwiftUI
 struct ConversationView: View {
     @State private var viewModel: ConversationViewModel
     @State private var pendingTranscript: String?
-    @State private var isHoldingMic = false
+    @State private var voiceHeardNothing = false
+    @State private var showLeaveConfirm = false
+    @State private var showHistory = false
     @Environment(\.dismiss) private var dismiss
 
     private let imageUrl: String
@@ -71,6 +73,13 @@ struct ConversationView: View {
                 onClose: { viewModel.closeStylePreview() }
             )
         }
+        .sheet(isPresented: $showHistory) {
+            ConversationHistoryView(entries: viewModel.history)
+        }
+        .confirmationDialog(String(localized: "leave_title"), isPresented: $showLeaveConfirm, titleVisibility: .visible) {
+            Button(String(localized: "leave_confirm"), role: .destructive) { dismiss() }
+            Button(String(localized: "leave_cancel"), role: .cancel) {}
+        }
         .onAppear {
             viewModel.startConversation()
         }
@@ -78,7 +87,10 @@ struct ConversationView: View {
             guard finalized && pendingTranscript == nil else { return }
             let transcript = viewModel.speechService.transcript
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-            if !transcript.isEmpty {
+            if transcript.isEmpty {
+                voiceHeardNothing = true
+                UINotificationFeedbackGenerator().notificationOccurred(.error)
+            } else {
                 pendingTranscript = transcript
             }
         }
@@ -125,10 +137,22 @@ struct ConversationView: View {
 
     // MARK: - Header
 
+    /// Leaving mid-turn throws away the analysis in progress, so ask first.
+    private var needsLeaveConfirmation: Bool {
+        switch viewModel.state {
+        case .loading, .processing, .speaking: true
+        default: false
+        }
+    }
+
     private var header: some View {
         HStack {
             IconButton(systemName: "xmark", accessibilityLabel: String(localized: "preview_close")) {
-                dismiss()
+                if needsLeaveConfirmation {
+                    showLeaveConfirm = true
+                } else {
+                    dismiss()
+                }
             }
 
             Spacer()
@@ -165,11 +189,11 @@ struct ConversationView: View {
                 .transition(.opacity)
 
         case .loading:
-            ThinkingIndicatorView(message: String(localized: "thinking_first"))
+            ThinkingIndicatorView(message: viewModel.progressText ?? String(localized: "thinking_first"))
                 .transition(.opacity)
 
         case .processing:
-            ThinkingIndicatorView(message: String(localized: "thinking_next"))
+            ThinkingIndicatorView(message: viewModel.progressText ?? String(localized: "thinking_next"))
                 .transition(.opacity)
 
         case .speaking:
@@ -182,17 +206,22 @@ struct ConversationView: View {
             }
 
         case .waitingForInput:
-            if hasCanvas {
-                canvasContent(isInteractive: !viewModel.isSpeaking)
-                    .transition(.opacity)
-            } else {
-                VStack(spacing: 32) {
-                    messageText
+            VStack(spacing: DS.Space.s) {
+                if hasCanvas {
+                    canvasContent(isInteractive: !viewModel.isSpeaking)
+                } else {
+                    VStack(spacing: 32) {
+                        messageText
 
-                    inputArea
+                        inputArea
+                    }
                 }
-                .transition(.opacity)
+
+                if viewModel.history.count >= 2 {
+                    TertiaryButton(title: String(localized: "history_open")) { showHistory = true }
+                }
             }
+            .transition(.opacity)
 
         case .finished:
             ScrollView {
@@ -411,12 +440,13 @@ struct ConversationView: View {
         .padding(.horizontal, 32)
     }
 
-    // MARK: - Push-to-talk mic
+    // MARK: - Tap-to-talk mic
 
     private var micInput: some View {
-        VStack(spacing: 16) {
+        let isListening = viewModel.speechService.isListening
+        return VStack(spacing: 16) {
             // Live transcript while recording
-            if isHoldingMic && !viewModel.speechService.transcript.isEmpty {
+            if isListening && !viewModel.speechService.transcript.isEmpty {
                 Text(viewModel.speechService.transcript)
                     .font(.body)
                     .foregroundStyle(DS.textSecondary)
@@ -425,46 +455,37 @@ struct ConversationView: View {
                     .transition(.opacity)
             }
 
-            // Mic button — hold to record
-            ZStack {
-                Circle()
-                    .fill(isHoldingMic ? Color.red.opacity(0.25) : Color.white.opacity(0.12))
-                    .frame(width: 80, height: 80)
-
-                if isHoldingMic {
+            // Tap to start, tap again to stop
+            Button {
+                toggleMic()
+            } label: {
+                ZStack {
                     Circle()
-                        .stroke(Color.red.opacity(0.5), lineWidth: 3)
-                        .frame(width: 96, height: 96)
-                        .transition(.scale)
-                }
+                        .fill(isListening ? Color.red.opacity(0.25) : Color.white.opacity(0.12))
+                        .frame(width: 80, height: 80)
 
-                Image(systemName: isHoldingMic ? "mic.fill" : "mic")
-                    .font(.title)
-                    .foregroundStyle(isHoldingMic ? .red : .white)
+                    if isListening {
+                        Circle()
+                            .stroke(Color.red.opacity(0.5), lineWidth: 3)
+                            .frame(width: 96, height: 96)
+                            .transition(.scale)
+                    }
+
+                    Image(systemName: isListening ? "mic.fill" : "mic")
+                        .font(.title)
+                        .foregroundStyle(isListening ? .red : .white)
+                }
+                .frame(width: 100, height: 100)
+                .contentShape(Circle())
             }
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        guard !isHoldingMic && !viewModel.isSpeaking else { return }
-                        isHoldingMic = true
-                        viewModel.speechService.startListening()
-                    }
-                    .onEnded { _ in
-                        guard isHoldingMic else { return }
-                        isHoldingMic = false
-                        viewModel.speechService.stopListening()
-                        // Don't read transcript here — STT needs time to finalize.
-                        // The onChange(of: isFinalized) handler will set pendingTranscript.
-                    }
-            )
+            .accessibilityLabel(String(localized: isListening ? "voice_tap_stop" : "voice_tap_hint"))
             .disabled(viewModel.isSpeaking)
             .opacity(viewModel.isSpeaking ? 0.4 : 1.0)
+            .animation(.easeInOut(duration: 0.2), value: isListening)
 
-            Text(isHoldingMic
-                 ? String(localized: "voice_listening")
-                 : String(localized: "voice_hold_hint"))
+            Text(micCaption(isListening: isListening))
                 .font(.caption)
-                .foregroundStyle(DS.textTertiary)
+                .foregroundStyle(voiceHeardNothing && !isListening ? DS.warning : DS.textTertiary)
         }
         .onAppear {
             // Mic + speech permission are requested when the user is about to speak,
@@ -473,33 +494,37 @@ struct ConversationView: View {
         }
     }
 
+    private func micCaption(isListening: Bool) -> String {
+        if isListening { return String(localized: "voice_tap_stop") }
+        if voiceHeardNothing { return String(localized: "voice_empty") }
+        return String(localized: "voice_tap_hint")
+    }
+
+    private func toggleMic() {
+        let speech = viewModel.speechService
+        if speech.isListening {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            speech.stopListening()
+            // Don't read the transcript here — STT needs time to finalize.
+            // The onChange(of: isFinalized) handler decides what happens next.
+        } else if !viewModel.isSpeaking {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            voiceHeardNothing = false
+            speech.startListening()
+        }
+    }
+
     // MARK: - Confirm transcript
 
     private func confirmTranscriptView(_ transcript: String) -> some View {
-        VStack(spacing: 20) {
-            Text(transcript)
-                .font(.body)
-                .foregroundStyle(.white)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
-                .padding(.vertical, 16)
-                .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.m))
-                .padding(.horizontal, 24)
-
-            HStack(spacing: 16) {
-                // Retry button
-                SecondaryButton(title: String(localized: "voice_retry"), systemImage: "arrow.counterclockwise") {
-                    pendingTranscript = nil
-                }
-
-                // Send button
-                PrimaryButton(title: String(localized: "voice_send"), systemImage: "paperplane.fill", style: .light) {
-                    let text = transcript
-                    pendingTranscript = nil
-                    viewModel.sendVoiceResponse(text)
-                }
-            }
-        }
+        VoiceConfirmView(
+            transcript: transcript,
+            onSend: {
+                pendingTranscript = nil
+                viewModel.sendVoiceResponse(transcript)
+            },
+            onRepeat: { pendingTranscript = nil }
+        )
     }
 
     // MARK: - Mic error (permission denied)
