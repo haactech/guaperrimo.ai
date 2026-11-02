@@ -16,11 +16,12 @@ protocol TTSService {
     func stop()
 }
 
-// MARK: - ElevenLabs implementation
+// MARK: - ElevenLabs implementation (through our backend)
 
+/// The stylist's voice. The audio comes from our backend (`POST /tts`), which
+/// holds the ElevenLabs key: the app never carries it. When the backend has
+/// no voice configured or the call fails, the iPhone's own voice speaks.
 final class ElevenLabsTTSService: NSObject, TTSService, AVAudioPlayerDelegate, AVSpeechSynthesizerDelegate {
-    private let apiKey: String
-    private let voiceId: String
     private var player: AVAudioPlayer?
     private var continuation: CheckedContinuation<Void, Never>?
     private var isStopped = false
@@ -32,62 +33,29 @@ final class ElevenLabsTTSService: NSObject, TTSService, AVAudioPlayerDelegate, A
         return s
     }()
 
-    override init() {
-        let configPath = Bundle.main.path(forResource: "Config", ofType: "plist")
-        logger.info("🔧 Config.plist path: \(configPath ?? "NOT FOUND")")
-
-        guard let configPath,
-              let config = NSDictionary(contentsOfFile: configPath),
-              let key = config["ElevenLabsAPIKey"] as? String,
-              let voice = config["ElevenLabsVoiceID"] as? String else {
-            logger.error("❌ Config.plist missing or incomplete — ElevenLabs TTS disabled")
-            self.apiKey = ""
-            self.voiceId = ""
-            super.init()
-            return
-        }
-        logger.info("🔧 ElevenLabs configured — voiceId: \(voice), apiKey: \(key.prefix(8))...")
-        self.apiKey = key
-        self.voiceId = voice
-        super.init()
-    }
-
     func speak(_ text: String) async {
         logger.info("🔊 speak() called — text length: \(text.count) chars")
         stop()
         isStopped = false
 
-        guard !apiKey.isEmpty, apiKey != "YOUR_API_KEY_HERE" else {
-            logger.warning("⚠️ ElevenLabs API key not configured — using fallback")
+        guard let url = URL(string: "\(APIClient.baseURL)/tts") else {
+            await fallbackSpeak(text)
+            return
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("audio/mpeg", forHTTPHeaderField: "Accept")
+        request.timeoutInterval = 30
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: ["text": text])
+        } catch {
+            logger.error("❌ Failed to encode TTS request body: \(error.localizedDescription)")
             await fallbackSpeak(text)
             return
         }
 
-        let url = URL(string: "https://api.elevenlabs.io/v1/text-to-speech/\(voiceId)")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue(apiKey, forHTTPHeaderField: "xi-api-key")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("audio/mpeg", forHTTPHeaderField: "Accept")
-        request.timeoutInterval = 30
-
-        let body: [String: Any] = [
-            "text": text,
-            "model_id": "eleven_multilingual_v2",
-            "voice_settings": [
-                "stability": 0.5,
-                "similarity_boost": 0.75,
-            ],
-        ]
-
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        } catch {
-            logger.error("❌ Failed to encode TTS request body: \(error.localizedDescription)")
-            return
-        }
-
-        logger.info("⬆️ ElevenLabs POST /v1/text-to-speech/\(self.voiceId)")
+        logger.info("⬆️ POST /tts")
 
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
@@ -97,18 +65,16 @@ final class ElevenLabsTTSService: NSObject, TTSService, AVAudioPlayerDelegate, A
                 return
             }
 
-            let httpResponse = response as! HTTPURLResponse
-            logger.info("⬇️ ElevenLabs HTTP \(httpResponse.statusCode) — \(data.count) bytes")
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            logger.info("⬇️ /tts HTTP \(status) — \(data.count) bytes")
 
-            guard httpResponse.statusCode == 200 else {
+            guard status == 200 else {
                 let errorBody = String(data: data, encoding: .utf8) ?? "<no body>"
-                logger.error("❌ ElevenLabs error: \(errorBody)")
+                logger.error("❌ /tts error \(status, privacy: .public): \(errorBody, privacy: .public)")
                 logger.info("🔄 Falling back to AVSpeechSynthesizer")
                 await fallbackSpeak(text)
                 return
             }
-
-            logger.info("🎵 Audio data: \(data.count) bytes")
 
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
             try AVAudioSession.sharedInstance().setActive(true)
@@ -132,7 +98,7 @@ final class ElevenLabsTTSService: NSObject, TTSService, AVAudioPlayerDelegate, A
             }
         } catch {
             guard !isStopped else { return }
-            logger.error("❌ ElevenLabs network failed: \(error.localizedDescription)")
+            logger.error("❌ /tts failed: \(String(describing: error), privacy: .public)")
             logger.info("🔄 Falling back to AVSpeechSynthesizer")
             await fallbackSpeak(text)
         }
