@@ -17,11 +17,6 @@
 "camera_hint" = "Teléfono a 105 cm · tú a 120 cm";
 "camera_help" = "Cómo tomar la foto";
 
-/* Legacy setup screen (removed in the next commit) */
-"onboarding_instruction" = "Apoya el teléfono en una superficie a ~105 cm del suelo. Aléjate 120 cm y encuádrate en la silueta.";
-"onboarding_ready" = "Listo, abrir cámara";
-"setup_banner" = "Teléfono a 105 cm · Distancia 120 cm";
-
 /* Camera View - Positioning states */
 "no_person" = "Colócate frente a la cámara";
 "too_far" = "Acércate un poco";
