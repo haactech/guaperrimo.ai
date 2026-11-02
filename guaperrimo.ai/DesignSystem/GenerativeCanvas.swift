@@ -18,6 +18,20 @@ struct GenerativeCanvas: View {
     var isInteractive: Bool = true
     var onChip: (_ optionId: String, _ label: String) -> Void = { _, _ in }
     var onSliderConfirm: (_ componentId: String, _ value: String) -> Void = { _, _ in }
+    /// One screen with chips and a slider is a small form: the chip is only
+    /// selected, and the slider's confirm sends every answer together.
+    var onSubmitValues: (_ values: [String: String]) -> Void = { _ in }
+
+    @State private var choices: [String: String] = [:]
+
+    private var isForm: Bool {
+        components.contains { if case .chips = $0 { true } else { false } }
+            && components.contains { if case .slider = $0 { true } else { false } }
+    }
+
+    private var chipIDs: [String] {
+        components.compactMap { if case .chips(let c) = $0 { c.id } else { nil } }
+    }
 
     var body: some View {
         VStack(spacing: DS.Space.m) {
@@ -34,10 +48,28 @@ struct GenerativeCanvas: View {
         case .text(let c):
             CanvasText(component: c)
         case .chips(let c):
-            CanvasChips(component: c, isInteractive: isInteractive, onChip: onChip)
+            if isForm {
+                CanvasChips(component: c, isInteractive: isInteractive, selectedId: choices[c.id]) { id, _ in
+                    UISelectionFeedbackGenerator().selectionChanged()
+                    choices[c.id] = id
+                }
+            } else {
+                CanvasChips(component: c, isInteractive: isInteractive, onChip: onChip)
+            }
         case .slider(let c):
-            CanvasSlider(component: c, isInteractive: isInteractive, onConfirm: onSliderConfirm)
+            if isForm {
+                let ready = chipIDs.allSatisfy { choices[$0] != nil }
+                CanvasSlider(component: c, isInteractive: isInteractive, canConfirm: ready,
+                             hint: ready ? nil : String(localized: "ui_pick_choice")) { id, value in
+                    var all = choices
+                    all[id] = value
+                    onSubmitValues(all)
+                }
                 .id(c.id)
+            } else {
+                CanvasSlider(component: c, isInteractive: isInteractive, onConfirm: onSliderConfirm)
+                    .id(c.id)
+            }
         case .palette(let c):
             CanvasPalette(component: c)
         case .steps(let c):
@@ -258,6 +290,7 @@ private struct FlowLayout: Layout {
 private struct CanvasChips: View {
     let component: ChipsComponent
     let isInteractive: Bool
+    var selectedId: String? = nil
     let onChip: (String, String) -> Void
 
     var body: some View {
@@ -266,7 +299,7 @@ private struct CanvasChips: View {
                 Button {
                     onChip(option.id, option.label)
                 } label: {
-                    Chip(label: option.label)
+                    Chip(label: option.label, isSelected: option.id == selectedId)
                         .frame(minHeight: DS.minTap)
                         .contentShape(RoundedRectangle(cornerRadius: DS.Radius.s))
                 }
@@ -284,13 +317,18 @@ private struct CanvasChips: View {
 private struct CanvasSlider: View {
     let component: SliderComponent
     let isInteractive: Bool
+    var canConfirm: Bool = true
+    var hint: String? = nil
     let onConfirm: (String, String) -> Void
 
     @State private var value: Double
 
-    init(component: SliderComponent, isInteractive: Bool, onConfirm: @escaping (String, String) -> Void) {
+    init(component: SliderComponent, isInteractive: Bool, canConfirm: Bool = true, hint: String? = nil,
+         onConfirm: @escaping (String, String) -> Void) {
         self.component = component
         self.isInteractive = isInteractive
+        self.canConfirm = canConfirm
+        self.hint = hint
         self.onConfirm = onConfirm
         let low = component.min
         let high = Swift.max(component.max, low)
@@ -325,8 +363,15 @@ private struct CanvasSlider: View {
             PrimaryButton(title: String(localized: "ui_continue")) {
                 onConfirm(component.id, "\(Int(value.rounded()))")
             }
-            .disabled(!isInteractive)
+            .disabled(!isInteractive || !canConfirm)
             .padding(.top, DS.Space.xxs)
+
+            if let hint {
+                Text(hint)
+                    .font(.caption)
+                    .foregroundStyle(DS.textTertiary)
+                    .frame(maxWidth: .infinity)
+            }
         }
         .padding(DS.Space.m)
         .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.m))

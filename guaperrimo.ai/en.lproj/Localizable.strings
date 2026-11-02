@@ -34,6 +34,10 @@
 "location_skip" = "Not now";
 
 /* Generative UI */
+"ui_pick_choice" = "Pick an option to continue";
+"input_type" = "Type my answer";
+"input_type_placeholder" = "Type your answer…";
+"input_use_voice" = "Use voice";
 "ui_continue" = "Continue";
 "ui_budget_format" = "%@ of %@";
 "ui_avoid" = "Avoid";
