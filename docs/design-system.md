@@ -129,6 +129,34 @@ El catálogo y la lógica no cambian; solo el estilo.
 - **budget_bar**: etiqueta en mayúsculas, total en `mono` (ámbar si excede),
   cinta métrica con marcador vertical en el total.
 
+## 4b. Guía de encuadre y onboarding
+
+La cámara y el onboarding usan el mismo lenguaje, con dos piezas propias
+(`Views/BodyGuide.swift`, `Views/Onboarding/`):
+
+- **`BodyGuideShape`**: silueta de pie, brazos ligeramente separados, de la
+  cabeza a media espinilla, como un solo contorno suavizado con spline
+  Catmull-Rom. Es solo visual: el detector lee articulaciones de Vision, no
+  este rectángulo.
+- **`BodyGuideFigure`**: la silueta con relleno tenue, brillo y cuatro
+  estados. *Buscando*: hueso, respira. *Ajustando*: hueso al 40 %, con flecha
+  de dirección. *Alineado*: nopal con brillo. *Capturando*: nopal y pulso.
+  El borde inferior se desvanece para no cortar las piernas.
+- **`CameraGuideLayer`**: la figura más la instrucción grande (`.title2`
+  semibold sobre scrim) que se lee a 120 cm, y la pista "Teléfono a 105 cm ·
+  tú a 120 cm" en mono, visible solo mientras no hay nadie en cuadro.
+- **`TapeLine`**: la cinta métrica como línea que se dibuja; se usa en las
+  ilustraciones del onboarding (105 cm y 120 cm).
+- **Onboarding**: tres páginas (qué hacemos, cómo colocar el teléfono, la
+  cámara dispara sola) con título `display` serif, cuerpo `textSecondary`,
+  ilustración animada que respeta Reduce Motion, puntos de página con la
+  marca de cinta en cognac y un `PrimaryButton`. Se muestra una vez y se
+  reabre desde el botón "?" de la cámara en la página de colocación.
+
+| Onboarding 1 · 2 · 3 | Guía: buscando · ajustando · alineado · cuenta |
+|---|---|
+| ![](design-system/onb1.png) ![](design-system/onb2.png) ![](design-system/onb3.png) | ![](design-system/guide-search.png) ![](design-system/guide-adjust.png) ![](design-system/guide-aligned.png) ![](design-system/guide-count.png) |
+
 ## 5. Reglas de uso en pantallas
 
 - Fondo siempre `TexturedBackground` o `DS.bg`; nunca `Color.black`.
