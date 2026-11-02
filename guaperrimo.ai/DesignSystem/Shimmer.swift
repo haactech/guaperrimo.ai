@@ -5,7 +5,7 @@
 
 import SwiftUI
 
-/// Single shimmer implementation: a soft highlight sweeping across a placeholder.
+/// Single shimmer implementation: a soft warm highlight sweeping across a placeholder.
 /// Apply to a filled placeholder shape; clip the result with the shape you need.
 struct Shimmer: ViewModifier {
     @State private var phase: CGFloat = -1
@@ -15,7 +15,7 @@ struct Shimmer: ViewModifier {
             .overlay(
                 GeometryReader { geo in
                     LinearGradient(
-                        colors: [.white.opacity(0), .white.opacity(0.15), .white.opacity(0)],
+                        colors: [DS.textPrimary.opacity(0), DS.textPrimary.opacity(0.07), DS.textPrimary.opacity(0)],
                         startPoint: .leading,
                         endPoint: .trailing
                     )

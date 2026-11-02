@@ -41,10 +41,10 @@ struct BeforeAfterView: View {
             if case .success(let image) = phase {
                 image.resizable().aspectRatio(contentMode: .fit)
             } else {
-                RoundedRectangle(cornerRadius: DS.Radius.s).fill(DS.surfaceRaised)
+                RoundedRectangle(cornerRadius: DS.Radius.l).fill(DS.surfaceRaised)
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.s))
+        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.l))
     }
 
     private var sideBySideView: some View {
@@ -80,15 +80,15 @@ struct BeforeAfterView: View {
                     )
 
                 ZStack {
-                    Rectangle().fill(.white).frame(width: 2)
+                    Rectangle().fill(DS.textPrimary).frame(width: 2)
                     Circle()
-                        .fill(.white)
+                        .fill(DS.textPrimary)
                         .frame(width: 36, height: 36)
                         .shadow(color: .black.opacity(0.3), radius: 4)
                         .overlay(
                             Image(systemName: "arrow.left.and.right")
                                 .font(.footnote.weight(.bold))
-                                .foregroundStyle(.black)
+                                .foregroundStyle(DS.bg)
                         )
                 }
                 .position(x: geo.size.width * sliderPosition, y: geo.size.height / 2)

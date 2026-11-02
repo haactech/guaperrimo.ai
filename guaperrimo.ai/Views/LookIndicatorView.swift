@@ -22,7 +22,7 @@ struct LookIndicatorView: View {
                 HStack(spacing: 6) {
                     ForEach(0..<max(totalCount, 3), id: \.self) { index in
                         Circle()
-                            .fill(index < readyCount ? DS.success : DS.textTertiary)
+                            .fill(index < readyCount ? DS.accent : DS.stroke)
                             .frame(width: 8, height: 8)
                     }
                 }

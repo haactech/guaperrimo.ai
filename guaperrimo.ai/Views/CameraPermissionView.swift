@@ -19,7 +19,7 @@ struct CameraPermissionView: View {
                     .foregroundStyle(DS.textSecondary)
 
                 Text(String(localized: "camera_permission_title"))
-                    .font(.title2.bold())
+                    .font(DS.Font.display)
                     .foregroundStyle(DS.textPrimary)
                     .multilineTextAlignment(.center)
 

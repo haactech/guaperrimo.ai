@@ -67,15 +67,18 @@ struct ShoppingListView: View {
                 Spacer()
                 if list.totalMxn > 0 {
                     Text("\(String(localized: "shopping_total")): $\(Int(list.totalMxn.rounded())) MXN")
-                        .fontWeight(.semibold)
+                        .font(DS.Font.mono)
+                        .monospacedDigit()
+                        .foregroundStyle(DS.textPrimary)
                 }
             }
             .font(.caption)
             .foregroundStyle(DS.textSecondary)
         }
-        .padding(14)
+        .padding(DS.Space.m)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.m))
+        .overlay(RoundedRectangle(cornerRadius: DS.Radius.m).stroke(DS.stroke, lineWidth: 1))
     }
 
     // MARK: - Items
@@ -124,8 +127,9 @@ struct ShoppingListView: View {
                         .strikethrough(purchased, color: DS.textSecondary)
 
                     Text(product.priceAndStoreLabel)
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(DS.textSecondary)
+                        .font(DS.Font.mono)
+                        .monospacedDigit()
+                        .foregroundStyle(DS.textPrimary)
 
                     locationLine(product, nearby: nearby)
                 }
@@ -154,6 +158,7 @@ struct ShoppingListView: View {
         }
         .padding(12)
         .background(purchased ? DS.surface.opacity(0.5) : DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.m))
+        .overlay(RoundedRectangle(cornerRadius: DS.Radius.m).stroke(DS.stroke, lineWidth: 1))
     }
 
     @ViewBuilder
@@ -164,8 +169,8 @@ struct ShoppingListView: View {
             } icon: {
                 Image(systemName: "figure.walk")
             }
-            .font(.caption)
-            .foregroundStyle(DS.success)
+            .font(DS.Font.monoSmall)
+            .foregroundStyle(DS.textTertiary)
         } else {
             let detail = [product.availability, product.delivery].compactMap { $0 }.filter { !$0.isEmpty }.first
             Label {
@@ -215,7 +220,7 @@ struct ShoppingListView: View {
                 } label: {
                     HStack(spacing: 12) {
                         Image(systemName: "mappin.and.ellipse")
-                            .foregroundStyle(DS.success)
+                            .foregroundStyle(DS.accent)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(s.name)
                                 .font(.subheadline)
@@ -227,11 +232,12 @@ struct ShoppingListView: View {
                         }
                         Spacer()
                         Text(distanceLabel(s.distanceM))
-                            .font(.caption.weight(.medium))
+                            .font(DS.Font.monoSmall)
                             .foregroundStyle(DS.textSecondary)
                     }
                     .padding(12)
-                    .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.s))
+                    .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.m))
+                    .overlay(RoundedRectangle(cornerRadius: DS.Radius.m).stroke(DS.stroke, lineWidth: 1))
                 }
             }
         }

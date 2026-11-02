@@ -90,31 +90,61 @@ struct ConversationView: View {
     }
 
     /// The card takes ~43% of the available height; everything else scrolls
-    /// only when it does not fit (small screens, long messages).
+    /// only when it does not fit (small screens, long messages). When the
+    /// turn shows something to read or pick (his palette, occasion chips, the
+    /// budget slider), the photo shrinks to a thumbnail and that content gets
+    /// the screen.
     private var photoLayout: some View {
         GeometryReader { geo in
-            VStack(spacing: 16) {
-                UserPhotoCard(image: image, url: imageUrl)
-                    .overlay(alignment: .bottom) {
-                        if viewModel.isSpeaking {
-                            SpeakingPillView { viewModel.skipSpeaking() }
-                                .padding(.bottom, 12)
-                                .transition(.opacity)
+            VStack(spacing: hasCanvas ? 8 : 16) {
+                if hasCanvas {
+                    compactPhoto
+                } else {
+                    UserPhotoCard(image: image, url: imageUrl)
+                        .overlay(alignment: .bottom) {
+                            if viewModel.isSpeaking {
+                                SpeakingPillView { viewModel.skipSpeaking() }
+                                    .padding(.bottom, 12)
+                                    .transition(.opacity)
+                            }
                         }
-                    }
-                    .animation(.easeInOut(duration: 0.2), value: viewModel.isSpeaking)
-                    .padding(.horizontal, 16)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: geo.size.height * 0.43)
+                        .padding(.horizontal, 16)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: geo.size.height * 0.43)
+                }
 
                 ScrollView {
                     mainContent
                         .frame(maxWidth: .infinity)
-                        .frame(minHeight: geo.size.height * 0.57 - 16 - 8)
+                        .frame(minHeight: geo.size.height - photoHeight(in: geo) - 24, alignment: .top)
                 }
                 .scrollBounceBehavior(.basedOnSize)
             }
+            .animation(.easeInOut(duration: 0.25), value: hasCanvas)
+            .animation(.easeInOut(duration: 0.2), value: viewModel.isSpeaking)
         }
+    }
+
+    private static let compactPhotoHeight: CGFloat = 88
+
+    private func photoHeight(in geo: GeometryProxy) -> CGFloat {
+        hasCanvas ? Self.compactPhotoHeight : geo.size.height * 0.43
+    }
+
+    /// Thumbnail of his photo with the speaking pill beside it.
+    private var compactPhoto: some View {
+        HStack(spacing: DS.Space.s) {
+            UserPhotoCard(image: image, url: imageUrl)
+                .frame(height: Self.compactPhotoHeight)
+
+            Spacer(minLength: 0)
+
+            if viewModel.isSpeaking {
+                SpeakingPillView { viewModel.skipSpeaking() }
+                    .transition(.opacity)
+            }
+        }
+        .padding(.horizontal, DS.Space.m)
     }
 
     // MARK: - Header
@@ -129,8 +159,8 @@ struct ConversationView: View {
 
             VStack(spacing: 4) {
                 Text(String(localized: "session_title"))
-                    .font(.headline)
-                    .foregroundStyle(.white)
+                    .font(DS.Font.heading)
+                    .foregroundStyle(DS.textPrimary)
 
                 if let label = viewModel.locationService.fix?.label {
                     Label(label, systemImage: "mappin")
@@ -279,11 +309,11 @@ struct ConversationView: View {
         VStack(spacing: 20) {
             Image(systemName: "mappin.and.ellipse")
                 .font(.largeTitle)
-                .foregroundStyle(DS.success)
+                .foregroundStyle(DS.accent)
 
             Text(String(localized: "location_consent_title"))
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(.white)
+                .font(DS.Font.heading)
+                .foregroundStyle(DS.textPrimary)
                 .multilineTextAlignment(.center)
 
             Text(String(localized: "location_consent_body"))
@@ -334,7 +364,7 @@ struct ConversationView: View {
     private var messageText: some View {
         Text(viewModel.currentMessage)
             .font(.title3)
-            .foregroundStyle(.white)
+            .foregroundStyle(DS.textPrimary)
             .multilineTextAlignment(.center)
             .minimumScaleFactor(0.85)
             .padding(.horizontal, 32)
@@ -365,16 +395,10 @@ struct ConversationView: View {
     // MARK: - Style preview (reopen after closing it)
 
     private var previewReopenButton: some View {
-        Button {
+        PrimaryButton(title: String(localized: "preview_open"), systemImage: "sparkles", style: .light) {
             viewModel.openStylePreview()
-        } label: {
-            Label(String(localized: "preview_open"), systemImage: "sparkles")
-                .font(.headline)
-                .foregroundStyle(.black)
-                .padding(.horizontal, 32)
-                .padding(.vertical, 14)
-                .background(.white, in: Capsule())
         }
+        .padding(.horizontal, DS.Space.l)
     }
 
     // MARK: - Pill buttons
@@ -387,7 +411,7 @@ struct ConversationView: View {
                 } label: {
                     Chip(label: option.label)
                         .frame(minHeight: DS.minTap)
-                        .contentShape(Capsule())
+                        .contentShape(RoundedRectangle(cornerRadius: DS.Radius.s))
                 }
                 .disabled(viewModel.isSpeaking)
                 .opacity(viewModel.isSpeaking ? 0.4 : 1.0)
@@ -413,19 +437,20 @@ struct ConversationView: View {
             // Mic button — hold to record
             ZStack {
                 Circle()
-                    .fill(isHoldingMic ? Color.red.opacity(0.25) : Color.white.opacity(0.12))
+                    .fill(isHoldingMic ? DS.danger.opacity(0.2) : DS.surfaceRaised)
                     .frame(width: 80, height: 80)
+                    .overlay(Circle().stroke(isHoldingMic ? DS.danger : DS.strokeStrong, lineWidth: 1))
 
                 if isHoldingMic {
                     Circle()
-                        .stroke(Color.red.opacity(0.5), lineWidth: 3)
+                        .stroke(DS.danger.opacity(0.5), lineWidth: 3)
                         .frame(width: 96, height: 96)
                         .transition(.scale)
                 }
 
                 Image(systemName: isHoldingMic ? "mic.fill" : "mic")
                     .font(.title)
-                    .foregroundStyle(isHoldingMic ? .red : .white)
+                    .foregroundStyle(isHoldingMic ? DS.danger : DS.textPrimary)
             }
             .gesture(
                 DragGesture(minimumDistance: 0)
@@ -464,11 +489,12 @@ struct ConversationView: View {
         VStack(spacing: 20) {
             Text(transcript)
                 .font(.body)
-                .foregroundStyle(.white)
+                .foregroundStyle(DS.textPrimary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
                 .padding(.vertical, 16)
                 .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.m))
+                .overlay(RoundedRectangle(cornerRadius: DS.Radius.m).stroke(DS.stroke, lineWidth: 1))
                 .padding(.horizontal, 24)
 
             HStack(spacing: 16) {

@@ -34,7 +34,7 @@ struct SetupInstructionView: View {
                         Text("120 cm")
                             .font(.title3.weight(.semibold))
                     }
-                    .foregroundStyle(DS.success)
+                    .foregroundStyle(DS.accent)
                 }
 
                 // Instruction text
@@ -158,7 +158,7 @@ struct CameraView: View {
                         .foregroundStyle(DS.textSecondary)
                         .padding(.horizontal, DS.Space.m)
                         .padding(.vertical, 6)
-                        .background(.black.opacity(0.4), in: Capsule())
+                        .background(DS.bg.opacity(0.6), in: RoundedRectangle(cornerRadius: DS.Radius.button))
                         .padding(.top, 52)
                 }
 
@@ -168,7 +168,7 @@ struct CameraView: View {
                     .foregroundStyle(DS.textPrimary)
                     .padding(.horizontal, DS.Space.inset)
                     .padding(.vertical, 10)
-                    .background(.black.opacity(0.5), in: Capsule())
+                    .background(DS.bg.opacity(0.7), in: RoundedRectangle(cornerRadius: DS.Radius.button))
                     .padding(.top, hasSeenOnboarding ? 8 : 60)
                     .animation(.easeInOut(duration: 0.3), value: instructionText)
 
@@ -212,13 +212,13 @@ struct CameraView: View {
                         if countdownActive {
                             Circle()
                                 .trim(from: 0, to: countdownProgress)
-                                .stroke(DS.success, style: StrokeStyle(lineWidth: 5, lineCap: .round))
+                                .stroke(DS.accent, style: StrokeStyle(lineWidth: 5, lineCap: .round))
                                 .rotationEffect(.degrees(-90))
                                 .frame(width: 90, height: 90)
 
                             Text("\(countdownRemaining)")
                                 .font(.system(size: 32, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(DS.textPrimary)
                         } else {
                             Button {
                                 cameraManager.capturePhoto()
@@ -226,10 +226,10 @@ struct CameraView: View {
                             } label: {
                                 ZStack {
                                     Circle()
-                                        .fill(.white)
+                                        .fill(DS.textPrimary)
                                         .frame(width: 72, height: 72)
                                     Circle()
-                                        .stroke(.white, lineWidth: 4)
+                                        .stroke(DS.textPrimary, lineWidth: 4)
                                         .frame(width: 82, height: 82)
                                 }
                             }
@@ -255,7 +255,8 @@ struct CameraView: View {
                                 .font(.headline)
                                 .foregroundStyle(DS.textPrimary)
                                 .frame(width: 44, height: 44)
-                                .background(.black.opacity(0.45), in: Circle())
+                                .background(DS.bg.opacity(0.6), in: Circle())
+                                .overlay(Circle().stroke(DS.strokeStrong, lineWidth: 1))
                         }
                         .accessibilityLabel(String(localized: "shopping_title"))
                         .padding(.leading, 16)
@@ -475,7 +476,7 @@ struct CameraView: View {
             ForEach(Array(info.joints.enumerated()), id: \.offset) { _, joint in
                 HStack(spacing: 4) {
                     Circle()
-                        .fill(joint.confidence > PositioningConfig.jointConfidenceMin ? Color.green : Color.red)
+                        .fill(joint.confidence > PositioningConfig.jointConfidenceMin ? DS.success : Color.red)
                         .frame(width: 6, height: 6)
                     Text(String(format: "%@ %.2f", joint.name, joint.confidence))
                 }
