@@ -62,7 +62,13 @@ struct ConversationView: View {
                         comment: viewModel.previewComment
                     )
                 },
-                onClose: { viewModel.showStylePreview = false }
+                onNone: {
+                    viewModel.sendIdeaSelection(
+                        ids: [],
+                        comment: String(localized: "preview_none_comment")
+                    )
+                },
+                onClose: { viewModel.closeStylePreview() }
             )
         }
         .onAppear {
@@ -365,15 +371,24 @@ struct ConversationView: View {
     // MARK: - Style preview (reopen after closing it)
 
     private var previewReopenButton: some View {
-        Button {
-            viewModel.openStylePreview()
-        } label: {
-            Label(String(localized: "preview_open"), systemImage: "sparkles")
-                .font(.headline)
-                .foregroundStyle(.black)
-                .padding(.horizontal, 32)
-                .padding(.vertical, 14)
-                .background(.white, in: Capsule())
+        VStack(spacing: 8) {
+            // A failed send must not be silent once the preview is closed.
+            if let error = viewModel.previewError {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(DS.warning)
+                    .multilineTextAlignment(.center)
+            }
+            Button {
+                viewModel.openStylePreview()
+            } label: {
+                Label(String(localized: "preview_open"), systemImage: "sparkles")
+                    .font(.headline)
+                    .foregroundStyle(.black)
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 14)
+                    .background(.white, in: Capsule())
+            }
         }
     }
 

@@ -18,9 +18,17 @@ struct StylePreviewView: View {
     let errorMessage: String?
     let onToggle: (String) -> Void
     let onSend: () -> Void
+    let onNone: () -> Void
     let onClose: () -> Void
 
     @FocusState private var commentFocused: Bool
+    @State private var contentWidth: CGFloat = 0
+
+    /// Two cards plus a peek of the third, so the row visibly scrolls.
+    private var cardWidth: CGFloat {
+        guard contentWidth > 0 else { return 160 }
+        return max(140, ((contentWidth - 12) / 2.2).rounded(.down))
+    }
 
     private var trimmedComment: String {
         comment.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -42,7 +50,7 @@ struct StylePreviewView: View {
                         if !message.isEmpty {
                             Text(message)
                                 .font(.title3)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(DS.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
 
@@ -58,7 +66,9 @@ struct StylePreviewView: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 16)
+                    .onGeometryChange(for: CGFloat.self) { $0.size.width - 40 } action: { contentWidth = $0 }
                 }
+                .scrollIndicators(.hidden)
                 .id(direction.round) // a new round starts at the top
                 .scrollDismissesKeyboard(.interactively)
             }
@@ -76,6 +86,7 @@ struct StylePreviewView: View {
             closeLabel: String(localized: "preview_close"),
             onClose: onClose
         )
+        .disabled(isSending) // closing mid-send would hide the result or the error
     }
 
     // MARK: - Brief
@@ -85,30 +96,30 @@ struct StylePreviewView: View {
             if let season = brief.colorSeason, !season.isEmpty {
                 Text("\(String(localized: "preview_color_season")): \(season)")
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.85))
+                    .foregroundStyle(DS.textSecondary)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(Color.white.opacity(0.12), in: Capsule())
+                    .background(DS.surfaceRaised, in: Capsule())
             }
 
             if !brief.summary.isEmpty {
                 Text(brief.summary)
                     .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.85))
+                    .foregroundStyle(DS.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             if !brief.palette.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     sectionLabel(String(localized: "preview_palette"))
-                    ScrollView(.horizontal, showsIndicators: false) {
+                    ScrollView(.horizontal) {
                         HStack(alignment: .top, spacing: 12) {
                             ForEach(Array(brief.palette.enumerated()), id: \.offset) { _, swatch in
                                 VStack(spacing: 6) {
                                     SwatchCircle(swatch: swatch, size: 36)
                                     Text(swatch.name)
                                         .font(.caption2)
-                                        .foregroundStyle(.white.opacity(0.75))
+                                        .foregroundStyle(DS.textSecondary)
                                         .multilineTextAlignment(.center)
                                         .lineLimit(2)
                                 }
@@ -116,6 +127,7 @@ struct StylePreviewView: View {
                             }
                         }
                     }
+                    .scrollIndicators(.hidden)
                 }
             }
 
@@ -128,11 +140,11 @@ struct StylePreviewView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(swatch.name)
                                     .font(.caption.weight(.semibold))
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(DS.textPrimary)
                                 if let why = swatch.why, !why.isEmpty {
                                     Text(why)
                                         .font(.caption)
-                                        .foregroundStyle(.white.opacity(0.65))
+                                        .foregroundStyle(DS.textSecondary)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
                             }
@@ -149,19 +161,19 @@ struct StylePreviewView: View {
                     Image(systemName: "figure.stand")
                 }
                 .font(.caption)
-                .foregroundStyle(.white.opacity(0.8))
+                .foregroundStyle(DS.textSecondary)
             }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+        .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.m))
     }
 
     private func sectionLabel(_ text: String) -> some View {
         Text(text.uppercased())
             .font(.caption2.weight(.semibold))
             .tracking(1)
-            .foregroundStyle(.white.opacity(0.5))
+            .foregroundStyle(DS.textTertiary)
     }
 
     // MARK: - Ideas
@@ -171,10 +183,10 @@ struct StylePreviewView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(String(localized: "preview_ideas_title"))
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DS.textPrimary)
                 Text(String(localized: "preview_ideas_hint"))
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.6))
+                    .foregroundStyle(DS.textSecondary)
             }
 
             // One row per garment of the outfit (shirts, pants, jackets),
@@ -182,26 +194,21 @@ struct StylePreviewView: View {
             ForEach(direction.ideasBySlot) { group in
                 VStack(alignment: .leading, spacing: 10) {
                     sectionLabel(previewSlotTitle(group.slot))
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(alignment: .top, spacing: 12) {
-                            ForEach(group.ideas) { idea in
-                                IdeaCardView(
-                                    idea: idea,
-                                    isSelected: selectedIds.contains(idea.id),
-                                    onTap: {
-                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                        onToggle(idea.id)
-                                    }
-                                )
-                                .frame(width: 180)
-                                .disabled(isSending)
-                            }
-                        }
-                        .fixedSize(horizontal: false, vertical: true) // cards in a row share one height
-                    }
-                    .scrollClipDisabled()
+                    IdeasRow(
+                        ideas: group.ideas,
+                        cardWidth: cardWidth,
+                        selectedIds: selectedIds,
+                        isSending: isSending,
+                        onToggle: onToggle
+                    )
                 }
             }
+
+            SecondaryButton(title: String(localized: "preview_none"), fullWidth: true) {
+                commentFocused = false
+                onNone()
+            }
+            .disabled(isSending)
         }
     }
 
@@ -211,24 +218,24 @@ struct StylePreviewView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "preview_comment_title"))
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(DS.textPrimary)
 
             TextField(
                 "",
                 text: $comment,
-                prompt: Text(String(localized: "preview_comment_placeholder")).foregroundStyle(.white.opacity(0.4)),
+                prompt: Text(String(localized: "preview_comment_placeholder")).foregroundStyle(DS.textTertiary),
                 axis: .vertical
             )
             .lineLimit(1...4)
             .font(.subheadline)
-            .foregroundStyle(.white)
+            .foregroundStyle(DS.textPrimary)
             .tint(.white)
             .focused($commentFocused)
             .padding(12)
-            .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+            .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.s))
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.white.opacity(commentFocused ? 0.35 : 0.15), lineWidth: 1)
+                    .stroke(commentFocused ? DS.textTertiary : DS.stroke, lineWidth: 1)
             )
             .disabled(isSending)
         }
@@ -249,12 +256,15 @@ struct StylePreviewView: View {
             if isSending {
                 ThinkingIndicatorView()
                     .frame(minHeight: 50)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(String(localized: "preview_a11y_sending"))
             } else {
-                PrimaryButton(title: sendTitle, style: .light) {
+                PrimaryButton(title: sendTitle, style: .light, accessibilityLabel: sendTitle) {
                     commentFocused = false
                     onSend()
                 }
                 .disabled(!canSend)
+                .accessibilityHint(canSend ? "" : String(localized: "preview_a11y_send_hint"))
                 .padding(.horizontal, DS.Space.inset)
             }
         }
@@ -274,6 +284,68 @@ struct StylePreviewView: View {
     }
 }
 
+// MARK: - Ideas row
+
+/// One horizontal row of alternatives: about two and a bit cards visible,
+/// snapping to cards, with dots that follow the scroll position.
+private struct IdeasRow: View {
+    let ideas: [StyleIdeaDTO]
+    let cardWidth: CGFloat
+    let selectedIds: Set<String>
+    let isSending: Bool
+    let onToggle: (String) -> Void
+
+    @State private var position: String?
+
+    /// Cards that fit fully in view (the rest peeks).
+    private let visibleCount = 2
+
+    private var leadingIndex: Int {
+        ideas.firstIndex { $0.id == position } ?? 0
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            ScrollView(.horizontal) {
+                HStack(alignment: .top, spacing: 12) {
+                    ForEach(ideas) { idea in
+                        IdeaCardView(
+                            idea: idea,
+                            isSelected: selectedIds.contains(idea.id),
+                            onTap: {
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                onToggle(idea.id)
+                            }
+                        )
+                        .frame(width: cardWidth)
+                        .disabled(isSending)
+                        .id(idea.id)
+                    }
+                }
+                .scrollTargetLayout()
+                .fixedSize(horizontal: false, vertical: true) // cards in a row share one height
+            }
+            .scrollIndicators(.hidden)
+            .scrollClipDisabled()
+            .scrollTargetBehavior(.viewAligned)
+            .scrollPosition(id: $position)
+
+            if ideas.count > visibleCount {
+                HStack(spacing: 6) {
+                    ForEach(Array(ideas.enumerated()), id: \.offset) { index, _ in
+                        let isVisible = index >= leadingIndex && index < leadingIndex + visibleCount
+                        Capsule()
+                            .fill(isVisible ? DS.textPrimary : DS.textTertiary)
+                            .frame(width: isVisible ? 14 : 6, height: 6)
+                    }
+                }
+                .animation(.easeOut(duration: 0.15), value: leadingIndex)
+                .accessibilityHidden(true)
+            }
+        }
+    }
+}
+
 // MARK: - Idea card
 
 private struct IdeaCardView: View {
@@ -281,21 +353,23 @@ private struct IdeaCardView: View {
     let isSelected: Bool
     let onTap: () -> Void
 
+    @State private var whyExpanded = false
+
     var body: some View {
         Button(action: onTap) {
             VStack(alignment: .leading, spacing: 8) {
                 referencePhoto
                     .overlay(alignment: .topTrailing) {
                         Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                            .font(.system(size: 24))
-                            .foregroundStyle(isSelected ? .green : .white)
+                            .font(.title2)
+                            .foregroundStyle(isSelected ? DS.success : DS.textPrimary)
                             .background(Circle().fill(.black.opacity(0.35)))
                             .padding(8)
                     }
 
                 Text(idea.garment)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DS.textPrimary)
                     .multilineTextAlignment(.leading)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
@@ -308,11 +382,12 @@ private struct IdeaCardView: View {
                     ChipsFlow(spacing: 6) {
                         ForEach(chips, id: \.self) { chip in
                             Text(chip)
+                                .lineLimit(1)
                                 .font(.caption2.weight(.medium))
-                                .foregroundStyle(.white.opacity(0.85))
+                                .foregroundStyle(DS.textSecondary)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
-                                .background(Color.white.opacity(0.12), in: Capsule())
+                                .background(DS.surfaceRaised, in: Capsule())
                         }
                     }
                 }
@@ -320,16 +395,20 @@ private struct IdeaCardView: View {
                 if let price = idea.priceRangeLabel {
                     Text(price)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DS.textPrimary)
                 }
 
                 if let why = idea.why, !why.isEmpty {
                     Text(why)
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(DS.textSecondary)
                         .multilineTextAlignment(.leading)
-                        .lineLimit(2)
+                        .lineLimit(whyExpanded ? nil : 3)
                         .fixedSize(horizontal: false, vertical: true)
+                        .contentShape(Rectangle())
+                        .onTapGesture { whyExpanded.toggle() }
+                        .accessibilityHint(String(localized: "preview_why_hint"))
+                        .animation(.easeOut(duration: 0.15), value: whyExpanded)
                 }
 
                 Spacer(minLength: 0)
@@ -337,22 +416,32 @@ private struct IdeaCardView: View {
                 if idea.reference != nil {
                     Text(referenceCaption)
                         .font(.caption2)
-                        .foregroundStyle(.white.opacity(0.45))
+                        .foregroundStyle(DS.textTertiary)
                         .lineLimit(1)
                 }
             }
             .padding(10)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(isSelected ? Color.green.opacity(0.12) : Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+            .background(isSelected ? DS.success.opacity(0.12) : DS.surface, in: RoundedRectangle(cornerRadius: 16))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(isSelected ? Color.green : Color.white.opacity(0.12), lineWidth: isSelected ? 2 : 1)
+                    .stroke(isSelected ? DS.success : DS.stroke, lineWidth: isSelected ? 2 : 1)
             )
             .contentShape(RoundedRectangle(cornerRadius: 16))
             .animation(.easeOut(duration: 0.15), value: isSelected)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityDescription)
+        .accessibilityValue(isSelected ? String(localized: "preview_a11y_selected") : String(localized: "preview_a11y_not_selected"))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityAction(named: String(localized: "preview_why_action")) {
+            if idea.why?.isEmpty == false { whyExpanded.toggle() }
+        }
+    }
+
+    private var accessibilityDescription: String {
+        let colorNames = idea.colors.map(\.name).filter { !$0.isEmpty }
+        return ([idea.garment] + colorNames).joined(separator: ", ")
     }
 
     private var chips: [String] {
@@ -376,8 +465,9 @@ private struct IdeaCardView: View {
                 HStack(spacing: 5) {
                     SwatchCircle(swatch: swatch, size: 14)
                     Text(swatch.name)
+                        .lineLimit(1)
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.8))
+                        .foregroundStyle(DS.textSecondary)
                 }
             }
         }
@@ -393,7 +483,7 @@ private struct IdeaCardView: View {
                     case .failure:
                         photoPlaceholder
                     default:
-                        Color.white.opacity(0.08)
+                        DS.surface
                             .shimmer()
                     }
                 }
@@ -408,10 +498,10 @@ private struct IdeaCardView: View {
 
     private var photoPlaceholder: some View {
         ZStack {
-            Color.white.opacity(0.08)
+            DS.surface
             Image(systemName: "tshirt")
-                .font(.system(size: 26))
-                .foregroundStyle(.white.opacity(0.3))
+                .font(.title2)
+                .foregroundStyle(DS.textTertiary)
         }
     }
 }
@@ -429,15 +519,15 @@ private struct SwatchCircle: View {
                 Circle().fill(Color(red: rgb.red, green: rgb.green, blue: rgb.blue))
             } else {
                 // No hex: neutral swatch, the name carries the color.
-                Circle().fill(Color.white.opacity(0.12))
+                Circle().fill(DS.surfaceRaised)
                 Circle()
-                    .strokeBorder(Color.white.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
+                    .strokeBorder(DS.textTertiary, style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
             }
-            Circle().strokeBorder(Color.white.opacity(0.25), lineWidth: 1)
+            Circle().strokeBorder(DS.stroke, lineWidth: 1)
 
             if crossedOut {
                 Rectangle()
-                    .fill(Color.red.opacity(0.9))
+                    .fill(DS.danger)
                     .frame(width: size * 1.1, height: 2)
                     .rotationEffect(.degrees(-45))
             }
@@ -464,12 +554,20 @@ private struct ChipsFlow: Layout {
         for row in arrange(maxWidth: bounds.width, subviews: subviews) {
             var x = bounds.minX
             for index in row.indices {
-                let size = subviews[index].sizeThatFits(.unspecified)
+                let size = measure(subviews[index], maxWidth: bounds.width)
                 subviews[index].place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
                 x += size.width + spacing
             }
             y += row.height + spacing
         }
+    }
+
+    /// Ideal size, but never wider than the row: a longer chip gets the full
+    /// width proposed and truncates (its text has `lineLimit(1)`).
+    private func measure(_ subview: LayoutSubview, maxWidth: CGFloat) -> CGSize {
+        let ideal = subview.sizeThatFits(.unspecified)
+        guard ideal.width > maxWidth, maxWidth.isFinite else { return ideal }
+        return subview.sizeThatFits(ProposedViewSize(width: maxWidth, height: nil))
     }
 
     private struct Row {
@@ -482,7 +580,7 @@ private struct ChipsFlow: Layout {
         var rows: [Row] = []
         var current = Row()
         for index in subviews.indices {
-            let size = subviews[index].sizeThatFits(.unspecified)
+            let size = measure(subviews[index], maxWidth: maxWidth)
             let needed = current.indices.isEmpty ? size.width : current.width + spacing + size.width
             if needed > maxWidth && !current.indices.isEmpty {
                 rows.append(current)
@@ -574,6 +672,7 @@ private struct StylePreviewPreviewHost: View {
                 if selected.contains(id) { selected.remove(id) } else { selected.insert(id) }
             },
             onSend: { sending = true },
+            onNone: { sending = true },
             onClose: {}
         )
     }
