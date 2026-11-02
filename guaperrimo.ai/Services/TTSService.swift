@@ -143,6 +143,17 @@ final class ElevenLabsTTSService: NSObject, TTSService, AVAudioPlayerDelegate, A
         guard !isStopped else { return }
         logger.info("🗣️ AVSpeechSynthesizer fallback — speaking \(text.count) chars")
 
+        // Same session as the ElevenLabs path: without .playback the system
+        // voice is silent when the ringer switch is off (and after the mic
+        // left the session in a recording category), while the speaking pill
+        // still shows.
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio, options: [])
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            logger.error("❌ Could not activate audio session for fallback speech: \(String(describing: error), privacy: .public)")
+        }
+
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(language: "es-MX")
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
