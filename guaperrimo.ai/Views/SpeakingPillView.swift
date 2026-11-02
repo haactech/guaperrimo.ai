@@ -17,15 +17,15 @@ struct SpeakingPillView: View {
             Button(action: onSkip) {
                 Text(String(localized: "tts_skip"))
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DS.accent)
                     .frame(minHeight: 44)
                     .contentShape(Rectangle())
             }
             .accessibilityLabel(String(localized: "tts_skip"))
         }
         .padding(.horizontal, 16)
-        .background(.ultraThinMaterial, in: Capsule())
-        .overlay(Capsule().stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.button))
+        .overlay(RoundedRectangle(cornerRadius: DS.Radius.button).stroke(DS.strokeStrong, lineWidth: 1))
     }
 }
 
@@ -37,7 +37,7 @@ private struct WaveformBars: View {
         HStack(spacing: 3) {
             ForEach(durations.indices, id: \.self) { index in
                 Capsule()
-                    .fill(Color.white)
+                    .fill(DS.textPrimary)
                     .frame(width: 3, height: animating ? 18 : 6)
                     .animation(
                         .easeInOut(duration: durations[index])

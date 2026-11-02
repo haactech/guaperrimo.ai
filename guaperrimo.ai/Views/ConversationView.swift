@@ -159,8 +159,8 @@ struct ConversationView: View {
 
             VStack(spacing: 4) {
                 Text(String(localized: "session_title"))
-                    .font(.headline)
-                    .foregroundStyle(.white)
+                    .font(DS.Font.heading)
+                    .foregroundStyle(DS.textPrimary)
 
                 if let label = viewModel.locationService.fix?.label {
                     Label(label, systemImage: "mappin")
@@ -309,11 +309,11 @@ struct ConversationView: View {
         VStack(spacing: 20) {
             Image(systemName: "mappin.and.ellipse")
                 .font(.largeTitle)
-                .foregroundStyle(DS.success)
+                .foregroundStyle(DS.accent)
 
             Text(String(localized: "location_consent_title"))
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(.white)
+                .font(DS.Font.heading)
+                .foregroundStyle(DS.textPrimary)
                 .multilineTextAlignment(.center)
 
             Text(String(localized: "location_consent_body"))
@@ -364,7 +364,7 @@ struct ConversationView: View {
     private var messageText: some View {
         Text(viewModel.currentMessage)
             .font(.title3)
-            .foregroundStyle(.white)
+            .foregroundStyle(DS.textPrimary)
             .multilineTextAlignment(.center)
             .minimumScaleFactor(0.85)
             .padding(.horizontal, 32)
@@ -395,16 +395,10 @@ struct ConversationView: View {
     // MARK: - Style preview (reopen after closing it)
 
     private var previewReopenButton: some View {
-        Button {
+        PrimaryButton(title: String(localized: "preview_open"), systemImage: "sparkles", style: .light) {
             viewModel.openStylePreview()
-        } label: {
-            Label(String(localized: "preview_open"), systemImage: "sparkles")
-                .font(.headline)
-                .foregroundStyle(.black)
-                .padding(.horizontal, 32)
-                .padding(.vertical, 14)
-                .background(.white, in: Capsule())
         }
+        .padding(.horizontal, DS.Space.l)
     }
 
     // MARK: - Pill buttons
@@ -417,7 +411,7 @@ struct ConversationView: View {
                 } label: {
                     Chip(label: option.label)
                         .frame(minHeight: DS.minTap)
-                        .contentShape(Capsule())
+                        .contentShape(RoundedRectangle(cornerRadius: DS.Radius.s))
                 }
                 .disabled(viewModel.isSpeaking)
                 .opacity(viewModel.isSpeaking ? 0.4 : 1.0)
@@ -443,19 +437,20 @@ struct ConversationView: View {
             // Mic button — hold to record
             ZStack {
                 Circle()
-                    .fill(isHoldingMic ? Color.red.opacity(0.25) : Color.white.opacity(0.12))
+                    .fill(isHoldingMic ? DS.danger.opacity(0.2) : DS.surfaceRaised)
                     .frame(width: 80, height: 80)
+                    .overlay(Circle().stroke(isHoldingMic ? DS.danger : DS.strokeStrong, lineWidth: 1))
 
                 if isHoldingMic {
                     Circle()
-                        .stroke(Color.red.opacity(0.5), lineWidth: 3)
+                        .stroke(DS.danger.opacity(0.5), lineWidth: 3)
                         .frame(width: 96, height: 96)
                         .transition(.scale)
                 }
 
                 Image(systemName: isHoldingMic ? "mic.fill" : "mic")
                     .font(.title)
-                    .foregroundStyle(isHoldingMic ? .red : .white)
+                    .foregroundStyle(isHoldingMic ? DS.danger : DS.textPrimary)
             }
             .gesture(
                 DragGesture(minimumDistance: 0)
@@ -494,11 +489,12 @@ struct ConversationView: View {
         VStack(spacing: 20) {
             Text(transcript)
                 .font(.body)
-                .foregroundStyle(.white)
+                .foregroundStyle(DS.textPrimary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
                 .padding(.vertical, 16)
                 .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.m))
+                .overlay(RoundedRectangle(cornerRadius: DS.Radius.m).stroke(DS.stroke, lineWidth: 1))
                 .padding(.horizontal, 24)
 
             HStack(spacing: 16) {

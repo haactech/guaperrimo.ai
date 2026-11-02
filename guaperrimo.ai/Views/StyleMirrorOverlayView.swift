@@ -56,14 +56,14 @@ struct StyleMirrorOverlayView: View {
                     if currentIndex > 0 {
                         Image(systemName: "chevron.left")
                             .font(.title2.weight(.medium))
-                            .foregroundStyle(DS.stroke)
+                            .foregroundStyle(DS.textTertiary)
                             .padding(.leading, 8)
                     }
                     Spacer()
                     if currentIndex < totalCount - 1 {
                         Image(systemName: "chevron.right")
                             .font(.title2.weight(.medium))
-                            .foregroundStyle(DS.stroke)
+                            .foregroundStyle(DS.textTertiary)
                             .padding(.trailing, 8)
                     }
                 }
@@ -86,7 +86,7 @@ struct StyleMirrorOverlayView: View {
                     HStack(spacing: 8) {
                         ForEach(0..<totalCount, id: \.self) { index in
                             Circle()
-                                .fill(index == currentIndex ? DS.textPrimary : DS.textTertiary)
+                                .fill(index == currentIndex ? DS.accent : DS.stroke)
                                 .frame(width: index == currentIndex ? 8 : 6,
                                        height: index == currentIndex ? 8 : 6)
                                 .animation(.easeInOut(duration: 0.2), value: currentIndex)
@@ -97,6 +97,7 @@ struct StyleMirrorOverlayView: View {
                 // "See garments" button (only for looks, not original)
                 if !isOriginal {
                     SecondaryButton(title: String(localized: "looks_pieces"), action: onPieces)
+                        .background(DS.bg.opacity(0.55), in: RoundedRectangle(cornerRadius: DS.Radius.button))
                 }
             }
             .padding(.bottom, 40)

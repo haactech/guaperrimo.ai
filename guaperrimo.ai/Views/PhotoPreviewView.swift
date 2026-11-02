@@ -31,7 +31,7 @@ struct PhotoPreviewView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            DS.bg.ignoresSafeArea()
 
             Image(uiImage: image)
                 .resizable()
@@ -44,53 +44,40 @@ struct PhotoPreviewView: View {
                 if let errorMessage {
                     Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
                         .font(.footnote)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(DS.textPrimary)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 12)
-                        .background(Color.red.opacity(0.35), in: RoundedRectangle(cornerRadius: 14))
+                        .background(DS.danger.opacity(0.25), in: RoundedRectangle(cornerRadius: DS.Radius.m))
                         .padding(.horizontal, 24)
                         .padding(.bottom, 16)
                         .transition(.opacity.combined(with: .scale))
                 }
 
-                HStack(spacing: 12) {
-                    Button {
+                HStack(spacing: DS.Space.s) {
+                    SecondaryButton(title: String(localized: "retake"), systemImage: "arrow.counterclockwise") {
                         onRetake()
-                    } label: {
-                        Label(String(localized: "retake"), systemImage: "arrow.counterclockwise")
-                            .font(.headline)
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 14)
-                            .background(.ultraThinMaterial, in: Capsule())
                     }
                     .disabled(isUploading)
 
-                    Button {
-                        if hasUploaded {
-                            showConversation = true
-                        } else {
-                            uploadImage()
-                        }
-                    } label: {
-                        Group {
-                            if isUploading {
-                                ProgressView()
-                                    .tint(.black)
-                            } else if hasUploaded {
-                                Label(String(localized: "continue_session"), systemImage: "arrow.right.circle.fill")
+                    if isUploading {
+                        ProgressView()
+                            .tint(DS.onAccent)
+                            .frame(maxWidth: .infinity, minHeight: DS.minTap)
+                            .background(DS.accent, in: RoundedRectangle(cornerRadius: DS.Radius.button))
+                    } else {
+                        PrimaryButton(
+                            title: hasUploaded ? String(localized: "continue_session") : String(localized: "analyze_outfit"),
+                            systemImage: hasUploaded ? "arrow.right.circle.fill" : "sparkles"
+                        ) {
+                            if hasUploaded {
+                                showConversation = true
                             } else {
-                                Label(String(localized: "analyze_outfit"), systemImage: "sparkles")
+                                uploadImage()
                             }
                         }
-                        .font(.headline)
-                        .foregroundStyle(.black)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 14)
-                        .background(.white, in: Capsule())
                     }
-                    .disabled(isUploading)
                 }
+                .padding(.horizontal, DS.Space.l)
                 .padding(.bottom, 40)
             }
         }

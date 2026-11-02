@@ -69,7 +69,7 @@ struct LookPieceSheet: View {
                 .frame(width: 72, height: 72)
                 .clipShape(RoundedRectangle(cornerRadius: DS.Radius.s))
             } else {
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: DS.Radius.s)
                     .fill(DS.surfaceRaised)
                     .frame(width: 72, height: 72)
             }
@@ -93,7 +93,8 @@ struct LookPieceSheet: View {
             Spacer()
         }
         .padding(12)
-        .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.s))
+        .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.m))
+        .overlay(RoundedRectangle(cornerRadius: DS.Radius.m).stroke(DS.stroke, lineWidth: 1))
     }
 }
 #endif
