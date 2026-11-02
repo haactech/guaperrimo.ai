@@ -1,9 +1,21 @@
 /* Onboarding */
-"onboarding_instruction" = "Place your phone on a surface at ~105 cm from the floor. Stand 120 cm away and align yourself with the silhouette.";
-"onboarding_ready" = "Ready, open camera";
+"onb_skip" = "Skip";
+"onb_next" = "Next";
+"onb_open_camera" = "Open the camera";
+"onb_page_of" = "Page %d of %d";
+"onb1_title" = "Look good without knowing fashion";
+"onb1_body" = "From one photo, your advisor reads which colors and cuts suit you and builds an outfit with real garments from stores near you, within your budget.";
+"onb1_step_photo" = "Your photo";
+"onb1_step_palette" = "Your palette";
+"onb1_step_outfit" = "Your outfit";
+"onb2_title" = "Prop the phone and step back";
+"onb2_body" = "Put it on a table or shelf at waist height. Stand four feet away, facing it, in good light.";
+"onb3_title" = "The camera shoots by itself";
+"onb3_body" = "Fit inside the silhouette. When you are in position it turns green and counts three seconds. Nothing to tap.";
 
-/* Banner (returning users) */
-"setup_banner" = "Phone at 105 cm · Distance 120 cm";
+/* Camera help */
+"camera_hint" = "Phone at 105 cm · you at 120 cm";
+"camera_help" = "How to take the photo";
 
 /* Camera View - Positioning states */
 "no_person" = "Step in front of the camera";
