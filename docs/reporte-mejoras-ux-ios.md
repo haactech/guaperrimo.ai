@@ -380,6 +380,23 @@ Tests unitarios tras el rebase: **25 de 26 pasan**. El que falla es `ElevenLabsT
 
 Siguiente paso sugerido: fase 1 (sistema de diseño) o el modo stub de §7.1 para tomar capturas en simulador.
 
+### 6.2 Fase 1 y parte de la fase 2 (1 de noviembre de 2026)
+
+Trabajo hecho en paralelo por tres agentes y revisado y encadenado a mano. Ramas apiladas: `main` → `ios-device-location` → `ios-design-system` → `ios-conversation-photo`; la auditoría del preview va aparte desde `main`.
+
+| Fase | Rama | Commits | Qué entró |
+|------|------|---------|-----------|
+| Ubicación | `ios-device-location` | `5dca080`, `cc4faf5` | Consentimiento + fix del dispositivo en cada turno; permisos de voz hasta el primer turno de voz (S-12). Backend en `location-gate`: el servidor pregunta ubicación y tienda preferida de forma determinista. |
+| 1 · Sistema de diseño | `ios-design-system` | `ab4a829` … `e141df4` (6) | `DesignSystem/` con tokens, `TexturedBackground`, `ScreenHeader`/`IconButton`, `PrimaryButton`/`SecondaryButton`/`TertiaryButton`, `UserPhotoCard`, `Shimmer`, `Chip`, `SegmentedControl`, `Toast`, `BeforeAfterView`. Migradas cámara, permiso, indicador, Style Mirror, comparación, hoja de prendas, indicador de looks, Mi lista y header/botones del preview de estilo. `AccentColor` definido, `preferredColorScheme(.dark)`. Cubre T-3, R-10, R-11 y parte de T-1 (falta el ícono de la app) y T-4. |
+| 2 · Conversación (parcial) | `ios-conversation-photo` | `e6687f8` … `29912e5` (5) | Foto del usuario siempre visible (S-1), pastilla "hablando" con **Saltar** (S-2), título "Tu estilista" con chip de ubicación (S-5), test del salto de voz, y la pantalla migrada al sistema de diseño. |
+| Auditoría del preview | `style-preview-audit` | `7ab01cc` | `docs/auditoria-style-preview.md`: 17 hallazgos `SP-n`, 4 posibles bugs y el contrato JSON de un turno `preview` para la UI generativa. |
+
+Tests: 28 de 29 (sigue fallando solo `ElevenLabsTests.checkCurrentConfiguredVoice()`, externo). Nada se ha verificado visualmente en simulador todavía; sigue pendiente el modo stub de §7.1.
+
+Decisiones visibles que conviene revisar en el teléfono: el gradiente de marca es ahora el CTA en onboarding, permiso de cámara, consentimiento de ubicación, "Tus looks" y "Listo" de la comparación; las cápsulas blancas se mantienen donde ya eran el CTA principal (preview, prendas, Mi lista, enviar voz). Se agregó shimmer a las fotos de ideas del preview.
+
+Pendiente de la fase 2: historial colapsable (S-3), micrófono por toque (S-6, S-7), reintento sin perder el turno (S-9), errores específicos (S-10), confirmar al cerrar a mitad del análisis (S-11). Fases 3 y 4 completas, más los hallazgos `SP-n` del preview.
+
 ---
 
 ## 7. Cómo validar: pruebas en dispositivo y simulador

@@ -33,7 +33,13 @@
 "location_allow" = "Usar mi ubicación";
 "location_skip" = "Ahora no";
 
+/* Generative UI */
+"ui_continue" = "Continuar";
+"ui_budget_format" = "%@ de %@";
+"ui_avoid" = "Evita";
+
 /* Conversation */
+"session_title" = "Tu estilista";
 "thinking" = "Analizando tu estilo…";
 "thinking_first" = "Mirando tu outfit…";
 "thinking_next" = "Pensando…";
@@ -42,6 +48,7 @@
 "voice_send" = "Enviar";
 "voice_retry" = "Repetir";
 "mic_denied" = "guaperrimo.ai necesita acceso al micrófono. Actívalo en Ajustes.";
+"tts_skip" = "Saltar";
 "error_retry" = "Intentar de nuevo";
 "error_generic" = "Algo salió mal. Intenta de nuevo.";
 "voice_error" = "No te entendí. Intenta de nuevo.";

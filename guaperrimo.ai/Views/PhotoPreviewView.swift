@@ -98,7 +98,7 @@ struct PhotoPreviewView: View {
         .animation(.easeInOut(duration: 0.3), value: errorMessage)
         .fullScreenCover(isPresented: $showConversation) {
             if let sessionId = uploadedSessionId, let imageUrl = uploadedImageUrl {
-                ConversationView(sessionId: sessionId, imageUrl: imageUrl)
+                ConversationView(sessionId: sessionId, imageUrl: imageUrl, image: image)
             }
         }
     }

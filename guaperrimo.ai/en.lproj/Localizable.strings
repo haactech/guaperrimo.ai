@@ -33,7 +33,13 @@
 "location_allow" = "Use my location";
 "location_skip" = "Not now";
 
+/* Generative UI */
+"ui_continue" = "Continue";
+"ui_budget_format" = "%@ of %@";
+"ui_avoid" = "Avoid";
+
 /* Conversation */
+"session_title" = "Your stylist";
 "thinking" = "Analyzing your style…";
 "thinking_first" = "Looking at your outfit…";
 "thinking_next" = "Thinking…";
@@ -42,6 +48,7 @@
 "voice_send" = "Send";
 "voice_retry" = "Retry";
 "mic_denied" = "guaperrimo.ai needs microphone access. Enable it in Settings.";
+"tts_skip" = "Skip";
 "error_retry" = "Try again";
 "error_generic" = "Something went wrong. Try again.";
 "voice_error" = "Couldn't understand you. Try again.";
