@@ -17,41 +17,48 @@ import SwiftUI
 /// the bottom edge is meant to be faded out by the caller.
 struct BodyGuideShape: Shape {
     /// Right half of the outline, from the top of the head down to the crotch,
-    /// as (x from centre, y from top) fractions of the bounding rect.
+    /// in head units (x from the centre line, y from the top). A standing man
+    /// is ~8 heads tall; the guide stops at mid-shin, 7 heads down, and the
+    /// bounding rect is 3.15 heads wide (aspect 0.45).
+    private static let heads: CGFloat = 7
+    private static let headsWide: CGFloat = 3.15
     private static let rightHalf: [(CGFloat, CGFloat)] = [
-        (0.000, 0.000),  // top of head
-        (0.080, 0.012),
-        (0.112, 0.070),  // side of head
-        (0.095, 0.130),
-        (0.052, 0.158),  // jaw to neck
-        (0.050, 0.195),  // neck base
-        (0.190, 0.212),  // trapezius
-        (0.300, 0.240),  // shoulder
-        (0.330, 0.300),  // deltoid
-        (0.338, 0.440),  // elbow
-        (0.322, 0.550),
-        (0.306, 0.610),  // wrist
-        (0.292, 0.665),  // hand
-        (0.270, 0.705),  // fingertips
-        (0.244, 0.690),
-        (0.244, 0.612),  // wrist, inner
-        (0.256, 0.520),
-        (0.266, 0.440),  // elbow, inner
-        (0.246, 0.350),
-        (0.214, 0.286),  // armpit
-        (0.204, 0.360),
-        (0.178, 0.470),  // waist
-        (0.218, 0.570),  // hip
-        (0.210, 0.680),
-        (0.180, 0.800),
-        (0.165, 0.860),  // knee
-        (0.145, 0.950),
-        (0.135, 1.000),  // shin, outer bottom
-        (0.045, 1.000),  // shin, inner bottom
-        (0.050, 0.950),
-        (0.055, 0.860),  // knee, inner
-        (0.060, 0.740),
-        (0.000, 0.635),  // crotch
+        (0.00, 0.00),  // top of head
+        (0.24, 0.07),
+        (0.35, 0.40),  // temple
+        (0.33, 0.70),  // cheek
+        (0.22, 0.93),  // jaw
+        (0.19, 1.06),  // chin
+        (0.21, 1.28),  // neck base
+        (0.48, 1.38),  // trapezius
+        (0.76, 1.52),  // shoulder
+        (0.87, 1.78),  // deltoid
+        (0.89, 2.30),  // upper arm
+        (0.86, 3.00),  // elbow
+        (0.79, 3.60),  // forearm
+        (0.72, 4.15),  // wrist
+        (0.70, 4.50),  // hand
+        (0.60, 4.88),  // fingertips
+        (0.49, 4.72),  // hand, inner
+        (0.52, 4.15),  // wrist, inner
+        (0.57, 3.60),  // forearm, inner
+        (0.60, 3.00),  // elbow, inner
+        (0.62, 2.45),  // upper arm, inner
+        (0.61, 2.10),  // armpit
+        (0.56, 2.50),  // ribs
+        (0.48, 3.05),  // waist
+        (0.57, 3.75),  // hip
+        (0.56, 4.40),  // thigh
+        (0.49, 5.30),
+        (0.45, 5.90),  // knee
+        (0.45, 6.40),  // calf
+        (0.38, 7.00),  // shin, outer bottom
+        (0.12, 7.00),  // shin, inner bottom
+        (0.09, 6.40),  // calf, inner
+        (0.11, 5.90),  // knee, inner
+        (0.14, 5.00),  // inner thigh
+        (0.09, 4.45),
+        (0.00, 4.05),  // crotch
     ]
 
     func path(in rect: CGRect) -> Path {
@@ -59,7 +66,7 @@ struct BodyGuideShape: Shape {
         // Closed polygon: right side top → bottom, then the mirrored left side bottom → top.
         let left = right.dropFirst().dropLast().reversed().map { (-$0.0, $0.1) }
         let points = (right + left).map { p in
-            CGPoint(x: rect.midX + p.0 * rect.width, y: rect.minY + p.1 * rect.height)
+            CGPoint(x: rect.midX + p.0 / Self.headsWide * rect.width, y: rect.minY + p.1 / Self.heads * rect.height)
         }
         return Path.catmullRom(closed: points)
     }
@@ -113,10 +120,10 @@ struct BodyGuideFigure: View {
 
     private var fillOpacity: Double {
         switch look {
-        case .searching: 0.06
-        case .adjusting: 0.04
-        case .aligned: 0.14
-        case .capturing: 0.18
+        case .searching: 0.05
+        case .adjusting: 0.03
+        case .aligned: 0.12
+        case .capturing: 0.16
         }
     }
 
@@ -128,7 +135,7 @@ struct BodyGuideFigure: View {
                 .stroke(ink.opacity(look == .aligned || look == .capturing ? 0.45 : 0.15), lineWidth: 10)
                 .blur(radius: 8)
             BodyGuideShape()
-                .stroke(ink.opacity(strokeOpacity), style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                .stroke(ink.opacity(strokeOpacity), style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
         }
         .mask(
             LinearGradient(
@@ -200,6 +207,24 @@ struct CameraGuideLayer: View {
             let centerY = screenH - bottomMargin - figureH / 2
 
             ZStack {
+                // Everything outside the figure is dimmed a little, so the person reads as "inside" the shape.
+                Color.black.opacity(look == .aligned || look == .capturing ? 0.42 : 0.34)
+                    .mask(
+                        ZStack {
+                            Rectangle()
+                            BodyGuideShape()
+                                .fill(LinearGradient(
+                                    stops: [.init(color: .white, location: 0), .init(color: .white, location: 0.86), .init(color: .clear, location: 1)],
+                                    startPoint: .top, endPoint: .bottom
+                                ))
+                                .frame(width: figureW, height: figureH)
+                                .position(x: screenW / 2, y: centerY)
+                                .blendMode(.destinationOut)
+                        }
+                        .compositingGroup()
+                    )
+                    .animation(.easeInOut(duration: 0.35), value: look == .aligned || look == .capturing)
+
                 BodyGuideFigure(look: look)
                     .frame(width: figureW, height: figureH)
                     .position(x: screenW / 2, y: centerY)
