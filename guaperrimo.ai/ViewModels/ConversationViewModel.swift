@@ -26,6 +26,8 @@ final class ConversationViewModel {
     var currentMessage: String = ""
     var currentOptions: [ChatOption] = []
     var currentInputMode: InputMode = .none
+    /// Generative UI components of the current turn; empty means the legacy message + options layout.
+    var currentUI: [UIComponent] = []
     var isSpeaking: Bool = false
 
     // Shopping list (final turn)
@@ -144,6 +146,12 @@ final class ConversationViewModel {
         }
     }
 
+    /// Cuts the stylist's voice short. `speak` returns once TTS stops, and
+    /// `handleResponse` then moves on to the next state on its own.
+    func skipSpeaking() {
+        ttsService.stop()
+    }
+
     /// Without a device location the server asks for the area in the conversation.
     func skipLocation() {
         sendFirstTurn()
@@ -209,6 +217,17 @@ final class ConversationViewModel {
     func selectOption(_ option: ChatOption) {
         state = .processing
         let request = ChatRequest(type: "button_response", imageUrl: nil, optionId: option.id, transcript: nil)
+        sendRequest(request)
+    }
+
+    /// Answers a generative UI component that needs an explicit confirm (the slider).
+    /// Chips are answered through `selectOption`, the existing button path.
+    func sendUIAction(componentId: String, value: String) {
+        state = .processing
+        let request = ChatRequest(
+            type: "ui_action", imageUrl: nil, optionId: nil, transcript: nil,
+            componentId: componentId, value: value
+        )
         sendRequest(request)
     }
 
@@ -293,6 +312,7 @@ final class ConversationViewModel {
         currentMessage = response.message
         currentOptions = response.options ?? []
         currentInputMode = response.inputMode
+        currentUI = response.ui ?? []
         shoppingList = response.shoppingList ?? []
         stores = response.stores ?? []
         totalMxn = response.totalMxn ?? 0
@@ -328,7 +348,9 @@ final class ConversationViewModel {
         // Speak the message
         state = .speaking
         isSpeaking = true
-        await ttsService.speak(response.message)
+        // `speech` is written to be heard; `message` is the fallback for turns without it.
+        let spoken = response.speech?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        await ttsService.speak(spoken.isEmpty ? response.message : spoken)
         isSpeaking = false
 
         // Brief pause after TTS

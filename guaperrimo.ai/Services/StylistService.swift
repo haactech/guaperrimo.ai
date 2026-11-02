@@ -168,32 +168,73 @@ struct StubStylistService: StylistService {
                 sessionId: sessionId,
                 phase: "discovery",
                 turn: 1,
-                message: "Veo un look casual con buenas proporciones. Para darte las mejores recomendaciones, necesito conocerte mejor. Que estilo te representa mas?",
+                message: "Veo un look casual con buenas proporciones. Para qué ocasión te vistes?",
                 inputMode: .buttons,
-                options: [
-                    ChatOption(id: "casual", label: "Casual elevado"),
-                    ChatOption(id: "streetwear", label: "Streetwear"),
-                    ChatOption(id: "minimalist", label: "Minimalista"),
-                    ChatOption(id: "smart_casual", label: "Smart casual"),
-                ],
+                options: Self.occasionOptions, // the server mirrors chips into options
                 isFinal: false,
                 priorityActions: nil,
-                looksGenerating: nil
+                looksGenerating: nil,
+                uiVersion: 1,
+                speech: "Veo un look casual con buenas proporciones. Para qué ocasión te estás vistiendo?",
+                ui: [
+                    .text(TextComponent(role: .stylist, text: "Veo un look casual con buenas proporciones. Para qué ocasión te vistes?")),
+                    .chips(ChipsComponent(id: "occasion", select: "single", allowVoice: true, options: Self.occasionOptions))
+                ]
             )
         }
 
-        // Second turn: voice question
+        // Second turn: the budget slider (waits for its confirm)
         if request.type == "button_response" {
             return ChatResponse(
                 sessionId: sessionId,
                 phase: "discovery",
                 turn: 2,
-                message: "Buena eleccion! Ahora cuentame, para que ocasion te estas vistiendo hoy?",
+                message: "Buena eleccion! Cuanto quieres gastar en total?",
+                inputMode: .ui,
+                options: nil,
+                isFinal: false,
+                priorityActions: nil,
+                looksGenerating: nil,
+                uiVersion: 1,
+                speech: "Buena elección. Cuánto quieres gastar en total?",
+                ui: [
+                    .text(TextComponent(role: .stylist, text: "Buena elección. Cuánto quieres gastar en total?")),
+                    .slider(SliderComponent(
+                        id: "budget", label: "Presupuesto", min: 500, max: 10000, step: 100,
+                        defaultValue: 2500, unit: "MXN", profileField: "budget_mxn"
+                    ))
+                ]
+            )
+        }
+
+        // Third turn: palette, then a voice question
+        if request.type == "ui_action" {
+            return ChatResponse(
+                sessionId: sessionId,
+                phase: "discovery",
+                turn: 3,
+                message: "Con ese presupuesto, estos colores te quedan muy bien. Cuentame, que te preocupa de tu look actual?",
                 inputMode: .voice,
                 options: nil,
                 isFinal: false,
                 priorityActions: nil,
-                looksGenerating: nil
+                looksGenerating: nil,
+                uiVersion: 1,
+                speech: "Con ese presupuesto, estos colores te quedan muy bien. Cuéntame, qué te preocupa de tu look actual?",
+                ui: [
+                    .text(TextComponent(role: .heading, text: "Tu paleta")),
+                    .palette(PaletteComponent(
+                        swatches: [
+                            PaletteSwatch(hex: "#1F2A44", name: "Azul marino"),
+                            PaletteSwatch(hex: "#D8C3A5", name: "Beige"),
+                            PaletteSwatch(hex: "#6B7B5E", name: "Verde olivo"),
+                            PaletteSwatch(hex: "#F2F2F2", name: "Blanco roto")
+                        ],
+                        avoid: [PaletteSwatch(hex: "#000000", name: "Negro total")],
+                        note: "El azul marino y el beige se llevan con todo lo que ya tienes."
+                    )),
+                    .text(TextComponent(role: .stylist, text: "Cuéntame, qué te preocupa de tu look actual?"))
+                ]
             )
         }
 
@@ -229,8 +270,42 @@ struct StubStylistService: StylistService {
                     effort: "bajo"
                 ),
             ],
-            looksGenerating: true
+            looksGenerating: true,
+            uiVersion: 1,
+            speech: "Perfecto! Basándome en tu estilo y ocasión, estas son mis recomendaciones prioritarias.",
+            ui: [
+                .text(TextComponent(role: .stylist, text: "Perfecto! Basandome en tu estilo y ocasion, aqui van mis recomendaciones prioritarias:")),
+                .steps(StepsComponent(items: [
+                    StepItem(title: "Cambia los tenis por botas Chelsea",
+                             detail: "Unas botas Chelsea en negro o cafe oscuro elevan cualquier outfit casual al instante.",
+                             productIds: ["p_boots"]),
+                    StepItem(title: "Agrega una capa intermedia",
+                             detail: "Un overshirt de franela o una chaqueta ligera tipo bomber anade dimension y estructura.",
+                             productIds: ["p_overshirt"]),
+                    StepItem(title: "Suma un accesorio clave",
+                             detail: "Un reloj minimalista o una cadena sutil hacen la diferencia sin complicar el outfit.",
+                             productIds: nil)
+                ])),
+                .budgetBar(BudgetBarComponent(totalMxn: 2247, budgetMxn: 2500, label: "Total aproximado")),
+                .productCard(ProductCardComponent(
+                    productId: "p_boots", title: "Botas Chelsea piel café", priceMxn: 1299, store: "Mercado Libre",
+                    imageUrl: "https://picsum.photos/128/128?random=41", link: nil, nearby: nil
+                )),
+                .productCard(ProductCardComponent(
+                    productId: "p_overshirt", title: "Overshirt de franela verde", priceMxn: 948, store: "H&M",
+                    imageUrl: "https://picsum.photos/128/128?random=42", link: nil,
+                    nearby: NearbyStore(name: "H&M Reforma", distanceM: 450)
+                ))
+            ]
         )
     }
+
+    private static let occasionOptions = [
+        ChatOption(id: "boda_dia", label: "Boda de día"),
+        ChatOption(id: "trabajo", label: "Trabajo"),
+        ChatOption(id: "cita", label: "Una cita"),
+        ChatOption(id: "casual", label: "Casual elevado"),
+        ChatOption(id: "streetwear", label: "Streetwear")
+    ]
 }
 #endif
