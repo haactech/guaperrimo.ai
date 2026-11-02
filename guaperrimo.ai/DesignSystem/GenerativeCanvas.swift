@@ -6,6 +6,9 @@
 //  with the design system. One small view per component; unknown types render
 //  nothing. Interaction is reported through closures, never handled here.
 //
+//  Signature detail of the visual language: the measuring tape (slider and
+//  budget line). Everything else stays plain.
+//
 
 #if os(iOS)
 import SwiftUI
@@ -70,6 +73,103 @@ private enum CanvasFormat {
     }
 }
 
+/// Small uppercase label, as on a garment tag.
+private struct CanvasLabel: View {
+    let text: String
+
+    var body: some View {
+        Text(text.uppercased())
+            .font(DS.Font.label)
+            .tracking(DS.labelTracking)
+            .foregroundStyle(DS.textTertiary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+// MARK: - Measuring tape
+
+/// A tailor's tape: a baseline with ticks hanging below, every fifth one taller.
+private struct TapeShape: Shape {
+    var ticks: Int = 40
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let y = rect.midY
+        path.move(to: CGPoint(x: rect.minX, y: y))
+        path.addLine(to: CGPoint(x: rect.maxX, y: y))
+        for i in 0...ticks {
+            let x = rect.minX + rect.width * CGFloat(i) / CGFloat(ticks)
+            let height = i % 5 == 0 ? rect.height * 0.5 : rect.height * 0.25
+            path.move(to: CGPoint(x: x, y: y))
+            path.addLine(to: CGPoint(x: x, y: y + height))
+        }
+        return path
+    }
+}
+
+/// Slider drawn as a measuring tape with a solid cognac thumb.
+private struct TapeSlider: View {
+    @Binding var value: Double
+    let range: ClosedRange<Double>
+    let step: Double
+    let isEnabled: Bool
+
+    private var fraction: CGFloat {
+        let span = range.upperBound - range.lowerBound
+        guard span > 0 else { return 0 }
+        return CGFloat(min(max((value - range.lowerBound) / span, 0), 1))
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            let width = geo.size.width
+            let midY = geo.size.height / 2
+            ZStack(alignment: .leading) {
+                TapeShape()
+                    .stroke(DS.strokeStrong, lineWidth: 1)
+                    .frame(height: 20)
+
+                Rectangle()
+                    .fill(DS.accent)
+                    .frame(width: max(width * fraction, 0), height: 2)
+                    .position(x: width * fraction / 2, y: midY)
+
+                Circle()
+                    .fill(DS.accent)
+                    .frame(width: 20, height: 20)
+                    .overlay(Circle().stroke(DS.bg, lineWidth: 2))
+                    .position(x: width * fraction, y: midY)
+            }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { gesture in
+                        guard isEnabled, width > 0 else { return }
+                        set(fraction: gesture.location.x / width)
+                    }
+            )
+        }
+        .frame(height: DS.minTap)
+        .opacity(isEnabled ? 1 : 0.5)
+        .accessibilityElement()
+        .accessibilityAdjustableAction { direction in
+            let delta = step > 0 ? step : (range.upperBound - range.lowerBound) / 20
+            switch direction {
+            case .increment: value = min(value + delta, range.upperBound)
+            case .decrement: value = max(value - delta, range.lowerBound)
+            @unknown default: break
+            }
+        }
+    }
+
+    private func set(fraction raw: CGFloat) {
+        let clamped = min(max(raw, 0), 1)
+        var next = range.lowerBound + Double(clamped) * (range.upperBound - range.lowerBound)
+        if step > 0 { next = (next / step).rounded() * step }
+        value = min(max(next, range.lowerBound), range.upperBound)
+    }
+}
+
 // MARK: - Text
 
 private struct CanvasText: View {
@@ -84,10 +184,9 @@ private struct CanvasText: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity, alignment: .center)
         case .heading:
-            Text(component.text.uppercased())
-                .font(.caption)
-                .tracking(1.2)
-                .foregroundStyle(DS.textTertiary)
+            Text(component.text)
+                .font(DS.Font.heading)
+                .foregroundStyle(DS.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityAddTraits(.isHeader)
         case .body:
@@ -169,7 +268,7 @@ private struct CanvasChips: View {
                 } label: {
                     Chip(label: option.label)
                         .frame(minHeight: DS.minTap)
-                        .contentShape(Capsule())
+                        .contentShape(RoundedRectangle(cornerRadius: DS.Radius.s))
                 }
                 .disabled(!isInteractive)
                 .opacity(isInteractive ? 1 : 0.4)
@@ -201,52 +300,37 @@ private struct CanvasSlider: View {
     private var range: ClosedRange<Double> { component.min...Swift.max(component.max, component.min) }
 
     var body: some View {
-        VStack(spacing: DS.Space.s) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(component.label)
-                    .font(.subheadline)
-                    .foregroundStyle(DS.textSecondary)
-                Spacer(minLength: DS.Space.xs)
-                Text(CanvasFormat.amount(value, unit: component.unit))
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(DS.textPrimary)
-                    .monospacedDigit()
-            }
-            .accessibilityHidden(true)
+        VStack(alignment: .leading, spacing: DS.Space.s) {
+            CanvasLabel(text: component.label)
 
-            VStack(spacing: DS.Space.xxs) {
-                slider
-                    .tint(DS.accentStart)
-                    .frame(minHeight: DS.minTap)
-                    .disabled(!isInteractive)
-                    .accessibilityLabel(component.label)
-                    .accessibilityValue(CanvasFormat.amount(value, unit: component.unit))
-
-                HStack {
-                    Text(CanvasFormat.number(component.min))
-                    Spacer()
-                    Text(CanvasFormat.number(component.max))
-                }
-                .font(.caption)
-                .foregroundStyle(DS.textTertiary)
+            Text(CanvasFormat.amount(value, unit: component.unit))
+                .font(DS.Font.monoLarge)
+                .monospacedDigit()
+                .foregroundStyle(DS.textPrimary)
                 .accessibilityHidden(true)
+
+            TapeSlider(value: $value, range: range, step: component.step ?? 0, isEnabled: isInteractive)
+                .accessibilityLabel(component.label)
+                .accessibilityValue(CanvasFormat.amount(value, unit: component.unit))
+
+            HStack {
+                Text(CanvasFormat.number(component.min))
+                Spacer()
+                Text(CanvasFormat.number(component.max))
             }
+            .font(DS.Font.monoSmall)
+            .foregroundStyle(DS.textTertiary)
+            .accessibilityHidden(true)
 
             PrimaryButton(title: String(localized: "ui_continue")) {
                 onConfirm(component.id, "\(Int(value.rounded()))")
             }
             .disabled(!isInteractive)
+            .padding(.top, DS.Space.xxs)
         }
         .padding(DS.Space.m)
         .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.m))
-    }
-
-    @ViewBuilder private var slider: some View {
-        if let step = component.step, step > 0 {
-            Slider(value: $value, in: range, step: step)
-        } else {
-            Slider(value: $value, in: range)
-        }
+        .overlay(RoundedRectangle(cornerRadius: DS.Radius.m).stroke(DS.stroke, lineWidth: 1))
     }
 }
 
@@ -256,8 +340,8 @@ private struct CanvasPalette: View {
     let component: PaletteComponent
 
     var body: some View {
-        VStack(spacing: DS.Space.s) {
-            FlowLayout(spacing: DS.Space.m, lineSpacing: DS.Space.s) {
+        VStack(alignment: .leading, spacing: DS.Space.s) {
+            FlowLayout(spacing: DS.Space.xs, lineSpacing: DS.Space.s) {
                 ForEach(Array(component.swatches.enumerated()), id: \.offset) { _, swatch in
                     SwatchView(swatch: swatch, struck: false)
                 }
@@ -265,15 +349,11 @@ private struct CanvasPalette: View {
             .frame(maxWidth: .infinity)
 
             if let avoid = component.avoid, !avoid.isEmpty {
-                VStack(spacing: DS.Space.xs) {
-                    Text(String(localized: "ui_avoid").uppercased())
-                        .font(.caption)
-                        .tracking(1.2)
-                        .foregroundStyle(DS.textTertiary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: DS.Space.xs) {
+                    CanvasLabel(text: String(localized: "ui_avoid"))
                         .accessibilityAddTraits(.isHeader)
 
-                    FlowLayout(spacing: DS.Space.m, lineSpacing: DS.Space.s) {
+                    FlowLayout(spacing: DS.Space.xs, lineSpacing: DS.Space.s) {
                         ForEach(Array(avoid.enumerated()), id: \.offset) { _, swatch in
                             SwatchView(swatch: swatch, struck: true)
                         }
@@ -291,34 +371,36 @@ private struct CanvasPalette: View {
         }
     }
 
+    /// A swatch of fabric: a square with a hairline, the name underneath.
     private struct SwatchView: View {
         let swatch: PaletteSwatch
         let struck: Bool
 
         var body: some View {
             VStack(spacing: DS.Space.xxs) {
-                Circle()
+                RoundedRectangle(cornerRadius: DS.Radius.s)
                     .fill(Color(hex: swatch.hex))
-                    .frame(width: 32, height: 32)
-                    .overlay(Circle().stroke(DS.stroke, lineWidth: 1))
+                    .frame(width: 48, height: 48)
+                    .overlay(RoundedRectangle(cornerRadius: DS.Radius.s).stroke(DS.stroke, lineWidth: 1))
                     .overlay {
                         if struck {
                             GeometryReader { geo in
                                 Path { path in
-                                    path.move(to: CGPoint(x: geo.size.width * 0.15, y: geo.size.height * 0.85))
-                                    path.addLine(to: CGPoint(x: geo.size.width * 0.85, y: geo.size.height * 0.15))
+                                    path.move(to: CGPoint(x: geo.size.width * 0.1, y: geo.size.height * 0.9))
+                                    path.addLine(to: CGPoint(x: geo.size.width * 0.9, y: geo.size.height * 0.1))
                                 }
                                 .stroke(DS.danger, style: StrokeStyle(lineWidth: 2, lineCap: .round))
                             }
                         }
                     }
+                    .opacity(struck ? 0.7 : 1)
 
-                if let name = swatch.name, !name.isEmpty {
-                    Text(name)
-                        .font(.caption)
-                        .foregroundStyle(DS.textSecondary)
-                        .lineLimit(1)
-                }
+                Text(swatch.name ?? " ")
+                    .font(.caption2)
+                    .foregroundStyle(DS.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .frame(width: 60, height: 30, alignment: .top)
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(swatch.name ?? swatch.hex)
@@ -332,14 +414,13 @@ private struct CanvasSteps: View {
     let component: StepsComponent
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DS.Space.s) {
+        VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(component.items.enumerated()), id: \.offset) { index, item in
-                HStack(alignment: .top, spacing: DS.Space.s) {
+                HStack(alignment: .firstTextBaseline, spacing: DS.Space.s) {
                     Text("\(index + 1)")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(DS.textPrimary)
-                        .frame(width: 28, height: 28)
-                        .background(DS.surfaceRaised, in: Circle())
+                        .font(DS.Font.numeral)
+                        .foregroundStyle(DS.brass)
+                        .frame(width: 28, alignment: .leading)
                         .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: DS.Space.xxs) {
@@ -354,7 +435,12 @@ private struct CanvasSteps: View {
                     }
                     Spacer(minLength: 0)
                 }
+                .padding(.vertical, DS.Space.s)
                 .accessibilityElement(children: .combine)
+
+                if index < component.items.count - 1 {
+                    Rectangle().fill(DS.stroke).frame(height: 1)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -374,10 +460,18 @@ private struct CanvasProductCard: View {
         }
     }
 
-    private var caption: String {
-        [component.priceMxn.map { CanvasFormat.amount($0) }, component.store.flatMap { $0.isEmpty ? nil : $0 }]
-            .compactMap { $0 }
-            .joined(separator: " · ")
+    /// "Liverpool · Liverpool Andares"
+    private var meta: String {
+        var parts: [String] = []
+        if let store = component.store, !store.isEmpty { parts.append(store) }
+        if let nearby = component.nearby, nearby.name != component.store { parts.append(nearby.name) }
+        return parts.joined(separator: " · ")
+    }
+
+    /// "450 m"
+    private var distance: String? {
+        guard let meters = component.nearby?.distanceM else { return nil }
+        return "\(CanvasFormat.number(meters)) m"
     }
 
     private var row: some View {
@@ -389,22 +483,32 @@ private struct CanvasProductCard: View {
 
             VStack(alignment: .leading, spacing: DS.Space.xxs) {
                 Text(component.title)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.subheadline)
                     .foregroundStyle(DS.textPrimary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
 
-                if !caption.isEmpty {
-                    Text(caption)
-                        .font(.caption)
-                        .foregroundStyle(DS.textSecondary)
+                if let price = component.priceMxn {
+                    Text(CanvasFormat.amount(price))
+                        .font(DS.Font.mono)
+                        .monospacedDigit()
+                        .foregroundStyle(DS.textPrimary)
                 }
 
-                if let nearby = component.nearby {
-                    Label(nearbyText(nearby), systemImage: "figure.walk")
-                        .font(.caption)
-                        .foregroundStyle(DS.success)
-                        .lineLimit(1)
+                if !meta.isEmpty || distance != nil {
+                    HStack(spacing: DS.Space.xs) {
+                        if !meta.isEmpty {
+                            Text(meta)
+                                .font(.caption)
+                                .foregroundStyle(DS.textTertiary)
+                                .lineLimit(1)
+                        }
+                        if let distance {
+                            Text(distance)
+                                .font(DS.Font.monoSmall)
+                                .foregroundStyle(DS.accent)
+                        }
+                    }
                 }
             }
             Spacer(minLength: 0)
@@ -412,13 +516,10 @@ private struct CanvasProductCard: View {
         .padding(DS.Space.s)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.m))
+        .overlay(RoundedRectangle(cornerRadius: DS.Radius.m).stroke(DS.stroke, lineWidth: 1))
         .accessibilityElement(children: .combine)
     }
 
-    private func nearbyText(_ nearby: NearbyStore) -> String {
-        guard let distance = nearby.distanceM else { return nearby.name }
-        return "\(nearby.name) · \(CanvasFormat.number(distance)) m"
-    }
 
     @ViewBuilder private var image: some View {
         if let url = component.imageUrl.flatMap(URL.init(string:)) {
@@ -461,33 +562,35 @@ private struct CanvasBudgetBar: View {
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Space.xs) {
             if let label = component.label, !label.isEmpty {
-                Text(label)
-                    .font(.caption)
-                    .foregroundStyle(DS.textSecondary)
+                CanvasLabel(text: label)
             }
 
             Text(valueText)
-                .font(.subheadline.weight(.semibold))
+                .font(DS.Font.mono)
+                .monospacedDigit()
                 .foregroundStyle(overBudget ? DS.warning : DS.textPrimary)
 
             if let budget = component.budgetMxn, budget > 0 {
                 let fraction = min(max(component.totalMxn / budget, 0), 1)
-                Capsule()
-                    .fill(DS.surfaceRaised)
-                    .frame(height: 8)
-                    .overlay(alignment: .leading) {
-                        GeometryReader { geo in
-                            Group {
-                                if overBudget {
-                                    Capsule().fill(DS.warning)
-                                } else {
-                                    Capsule().fill(DS.accent)
-                                }
-                            }
-                            .frame(width: geo.size.width * fraction)
-                        }
+                let ink = overBudget ? DS.warning : DS.accent
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        TapeShape()
+                            .stroke(DS.strokeStrong, lineWidth: 1)
+
+                        Rectangle()
+                            .fill(ink)
+                            .frame(width: geo.size.width * fraction, height: 2)
+                            .position(x: geo.size.width * fraction / 2, y: geo.size.height / 2)
+
+                        Rectangle()
+                            .fill(ink)
+                            .frame(width: 2, height: 14)
+                            .position(x: geo.size.width * fraction, y: geo.size.height / 2)
                     }
-                    .accessibilityHidden(true)
+                }
+                .frame(height: 20)
+                .accessibilityHidden(true)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

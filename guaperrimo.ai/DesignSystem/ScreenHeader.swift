@@ -5,7 +5,8 @@
 
 import SwiftUI
 
-/// Round 36pt icon button (close, compare, bag...). Always pass an accessibility label.
+/// Round 36pt icon button (close, compare, bag...). Outlined, with a dark scrim
+/// so it stays legible over photos. Always pass an accessibility label.
 struct IconButton: View {
     let systemName: String
     let accessibilityLabel: String
@@ -15,16 +16,17 @@ struct IconButton: View {
         Button(action: action) {
             Image(systemName: systemName)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(DS.textSecondary)
+                .foregroundStyle(DS.textPrimary)
                 .frame(width: 36, height: 36)
-                .background(DS.surfaceRaised, in: Circle())
+                .background(DS.bg.opacity(0.6), in: Circle())
+                .overlay(Circle().stroke(DS.strokeStrong, lineWidth: 1))
                 .contentShape(Circle().inset(by: -4)) // 44pt hit area, 36pt look
         }
         .accessibilityLabel(accessibilityLabel)
     }
 }
 
-/// Top bar: leading slot (usually the close button), centered title, trailing slot.
+/// Top bar: leading slot (usually the close button), centered serif title, trailing slot.
 struct ScreenHeader<Leading: View, Trailing: View>: View {
     let title: String
     @ViewBuilder var leading: Leading
@@ -35,9 +37,10 @@ struct ScreenHeader<Leading: View, Trailing: View>: View {
             leading
             Spacer()
             Text(title)
-                .font(.headline)
+                .font(DS.Font.heading)
                 .foregroundStyle(DS.textPrimary)
                 .lineLimit(1)
+                .minimumScaleFactor(0.8)
             Spacer()
             trailing
         }
