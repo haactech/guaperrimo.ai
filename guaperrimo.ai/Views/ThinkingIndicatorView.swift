@@ -25,7 +25,8 @@ struct ThinkingIndicatorView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(DS.surfaceRaised, in: RoundedRectangle(cornerRadius: DS.Radius.m))
+            .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.m))
+            .overlay(RoundedRectangle(cornerRadius: DS.Radius.m).stroke(DS.stroke, lineWidth: 1))
 
             Text(message)
                 .font(.subheadline)
