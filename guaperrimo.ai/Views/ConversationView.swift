@@ -90,31 +90,61 @@ struct ConversationView: View {
     }
 
     /// The card takes ~43% of the available height; everything else scrolls
-    /// only when it does not fit (small screens, long messages).
+    /// only when it does not fit (small screens, long messages). When the
+    /// turn shows something to read or pick (his palette, occasion chips, the
+    /// budget slider), the photo shrinks to a thumbnail and that content gets
+    /// the screen.
     private var photoLayout: some View {
         GeometryReader { geo in
-            VStack(spacing: 16) {
-                UserPhotoCard(image: image, url: imageUrl)
-                    .overlay(alignment: .bottom) {
-                        if viewModel.isSpeaking {
-                            SpeakingPillView { viewModel.skipSpeaking() }
-                                .padding(.bottom, 12)
-                                .transition(.opacity)
+            VStack(spacing: hasCanvas ? 8 : 16) {
+                if hasCanvas {
+                    compactPhoto
+                } else {
+                    UserPhotoCard(image: image, url: imageUrl)
+                        .overlay(alignment: .bottom) {
+                            if viewModel.isSpeaking {
+                                SpeakingPillView { viewModel.skipSpeaking() }
+                                    .padding(.bottom, 12)
+                                    .transition(.opacity)
+                            }
                         }
-                    }
-                    .animation(.easeInOut(duration: 0.2), value: viewModel.isSpeaking)
-                    .padding(.horizontal, 16)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: geo.size.height * 0.43)
+                        .padding(.horizontal, 16)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: geo.size.height * 0.43)
+                }
 
                 ScrollView {
                     mainContent
                         .frame(maxWidth: .infinity)
-                        .frame(minHeight: geo.size.height * 0.57 - 16 - 8)
+                        .frame(minHeight: geo.size.height - photoHeight(in: geo) - 24, alignment: .top)
                 }
                 .scrollBounceBehavior(.basedOnSize)
             }
+            .animation(.easeInOut(duration: 0.25), value: hasCanvas)
+            .animation(.easeInOut(duration: 0.2), value: viewModel.isSpeaking)
         }
+    }
+
+    private static let compactPhotoHeight: CGFloat = 88
+
+    private func photoHeight(in geo: GeometryProxy) -> CGFloat {
+        hasCanvas ? Self.compactPhotoHeight : geo.size.height * 0.43
+    }
+
+    /// Thumbnail of his photo with the speaking pill beside it.
+    private var compactPhoto: some View {
+        HStack(spacing: DS.Space.s) {
+            UserPhotoCard(image: image, url: imageUrl)
+                .frame(height: Self.compactPhotoHeight)
+
+            Spacer(minLength: 0)
+
+            if viewModel.isSpeaking {
+                SpeakingPillView { viewModel.skipSpeaking() }
+                    .transition(.opacity)
+            }
+        }
+        .padding(.horizontal, DS.Space.m)
     }
 
     // MARK: - Header
