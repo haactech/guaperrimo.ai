@@ -46,6 +46,10 @@
 "location_skip" = "Ahora no";
 
 /* Generative UI */
+"ui_pick_choice" = "Elige una opción para continuar";
+"input_type" = "Escribir mi respuesta";
+"input_type_placeholder" = "Escribe tu respuesta…";
+"input_use_voice" = "Usar voz";
 "ui_continue" = "Continuar";
 "ui_budget_format" = "%@ de %@";
 "ui_avoid" = "Evita";

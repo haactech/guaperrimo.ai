@@ -18,6 +18,16 @@ import Testing
         return try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
     }
 
+    @Test func oneScreenSendsOccasionAndBudgetTogether() throws {
+        var request = ChatRequest(type: "ui_action", imageUrl: nil, optionId: nil, transcript: nil)
+        request.values = ["occasion": "boda_dia", "budget": "3500"]
+        let json = try encode(request)
+        #expect(json["type"] as? String == "ui_action")
+        let values = try #require(json["values"] as? [String: String])
+        #expect(values == ["occasion": "boda_dia", "budget": "3500"])
+        #expect(json["component_id"] == nil && json["value"] == nil)
+    }
+
     @Test func locationIsSentWithTheDeviceFields() throws {
         var request = ChatRequest(type: "button_response", imageUrl: nil, optionId: "boda", transcript: nil)
         request.location = DeviceLocation(lat: 19.4194, lng: -99.1616, label: "Roma Norte, Ciudad de México")

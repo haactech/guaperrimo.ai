@@ -18,6 +18,7 @@ nonisolated struct ChatRequest: Codable, Sendable {
     var location: DeviceLocation? = nil // cualquier turno: ubicación del dispositivo, si el usuario la permitió
     var componentId: String? = nil     // solo type=ui_action: id del componente (p. ej. "budget")
     var value: String? = nil           // solo type=ui_action: valor confirmado como texto
+    var values: [String: String]? = nil // solo type=ui_action: varias respuestas de una pantalla (id del componente → valor)
 }
 
 // MARK: - Response

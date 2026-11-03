@@ -10,6 +10,9 @@ struct ConversationView: View {
     @State private var viewModel: ConversationViewModel
     @State private var pendingTranscript: String?
     @State private var isHoldingMic = false
+    @State private var isTyping = false
+    @State private var typedText = ""
+    @FocusState private var typingFocused: Bool
     @Environment(\.dismiss) private var dismiss
 
     private let imageUrl: String
@@ -277,7 +280,8 @@ struct ConversationView: View {
                 components: viewModel.currentUI,
                 isInteractive: isInteractive,
                 onChip: { id, label in viewModel.selectOption(ChatOption(id: id, label: label)) },
-                onSliderConfirm: { id, value in viewModel.sendUIAction(componentId: id, value: value) }
+                onSliderConfirm: { id, value in viewModel.sendUIAction(componentId: id, value: value) },
+                onSubmitValues: { viewModel.sendUIValues($0) }
             )
             .padding(.horizontal, DS.Space.l)
 
@@ -287,8 +291,12 @@ struct ConversationView: View {
         }
     }
 
+    /// Every question can also be answered by talking or typing, including
+    /// the budget slider: tapping is the shortcut, never the only way.
     private var canvasTakesVoice: Bool {
-        viewModel.currentInputMode == .voice || viewModel.currentUI.contains(where: \.isChipsWithVoice)
+        viewModel.currentInputMode == .voice
+            || viewModel.currentInputMode == .ui
+            || viewModel.currentUI.contains(where: \.isChipsWithVoice)
     }
 
     @ViewBuilder
@@ -297,9 +305,50 @@ struct ConversationView: View {
             micErrorView(errorMsg)
         } else if let transcript = pendingTranscript {
             confirmTranscriptView(transcript)
+        } else if isTyping {
+            typingInput
         } else {
-            micInput
+            VStack(spacing: DS.Space.s) {
+                micInput
+                TertiaryButton(title: String(localized: "input_type")) {
+                    isTyping = true
+                    typingFocused = true
+                }
+            }
         }
+    }
+
+    /// Typed answer, for when talking out loud is not an option.
+    private var typingInput: some View {
+        VStack(spacing: DS.Space.s) {
+            TextField(String(localized: "input_type_placeholder"), text: $typedText, axis: .vertical)
+                .lineLimit(1...4)
+                .focused($typingFocused)
+                .submitLabel(.send)
+                .onSubmit(sendTyped)
+                .padding(DS.Space.s)
+                .foregroundStyle(DS.textPrimary)
+                .background(DS.surface, in: RoundedRectangle(cornerRadius: DS.Radius.s))
+                .overlay(RoundedRectangle(cornerRadius: DS.Radius.s).stroke(DS.strokeStrong, lineWidth: 1))
+            HStack(spacing: DS.Space.s) {
+                SecondaryButton(title: String(localized: "input_use_voice"), size: .small) {
+                    isTyping = false
+                    typingFocused = false
+                }
+                PrimaryButton(title: String(localized: "voice_send"), action: sendTyped)
+                    .disabled(typedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }
+        .padding(.horizontal, DS.Space.l)
+    }
+
+    private func sendTyped() {
+        let text = typedText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        typedText = ""
+        isTyping = false
+        typingFocused = false
+        viewModel.sendVoiceResponse(text)
     }
 
     // MARK: - Location consent

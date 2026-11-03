@@ -231,6 +231,16 @@ final class ConversationViewModel {
         sendRequest(request)
     }
 
+    /// Answers several components of one screen together: the occasion chip
+    /// and the budget slider, so the stylist gets both in one turn.
+    func sendUIValues(_ values: [String: String]) {
+        guard !values.isEmpty else { return }
+        state = .processing
+        var request = ChatRequest(type: "ui_action", imageUrl: nil, optionId: nil, transcript: nil)
+        request.values = values
+        sendRequest(request)
+    }
+
     func sendVoiceResponse(_ transcript: String) {
         guard !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         state = .processing
