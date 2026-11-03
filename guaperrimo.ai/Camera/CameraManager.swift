@@ -156,7 +156,7 @@ final class CameraManager: NSObject {
             image.draw(at: .zero)
 
             // Silhouette outline
-            let shape = BodySilhouetteShape()
+            let shape = BodyGuideShape()
             let path = shape.path(in: silRect)
             ctx.cgContext.setStrokeColor(UIColor.red.withAlphaComponent(0.8).cgColor)
             ctx.cgContext.setLineWidth(max(4, imgW / 250))

@@ -7,54 +7,6 @@
 import AVFoundation
 import SwiftUI
 
-// MARK: - Onboarding instruction screen (shown once)
-
-struct SetupInstructionView: View {
-    let onReady: () -> Void
-
-    @ScaledMetric(relativeTo: .largeTitle) private var illustrationSize: CGFloat = 64
-
-    var body: some View {
-        ZStack {
-            TexturedBackground()
-
-            VStack(spacing: 32) {
-                Spacer()
-
-                // Setup illustration
-                VStack(spacing: 16) {
-                    Image(systemName: "iphone.and.arrow.left.and.arrow.right")
-                        .font(.system(size: illustrationSize))
-                        .foregroundStyle(DS.textSecondary)
-
-                    // Distance indicator
-                    HStack(spacing: 8) {
-                        Image(systemName: "arrow.left.and.right")
-                            .font(.title3)
-                        Text("120 cm")
-                            .font(.title3.weight(.semibold))
-                    }
-                    .foregroundStyle(DS.accent)
-                }
-
-                // Instruction text
-                Text(String(localized: "onboarding_instruction"))
-                    .font(.body)
-                    .foregroundStyle(DS.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
-
-                Spacer()
-
-                // Ready button
-                PrimaryButton(title: String(localized: "onboarding_ready"), action: onReady)
-                    .padding(.horizontal, 40)
-                .padding(.bottom, 50)
-            }
-        }
-    }
-}
-
 // MARK: - Shake gesture detector
 
 #if DEBUG
@@ -102,6 +54,7 @@ struct CameraView: View {
     @State private var countdownProgress: CGFloat = 0.0
     @State private var showFlash = false
     @State private var showOnboarding: Bool
+    @State private var showHelp = false
     @State private var debugTimerActive = false
     @State private var debugTimerRemaining: Int = 0
     @State private var debugTimer: Timer?
@@ -110,7 +63,7 @@ struct CameraView: View {
     #endif
 
     init() {
-        let hasSeenOnboarding = UserDefaults.standard.bool(forKey: "hasSeenCameraOnboarding")
+        let hasSeenOnboarding = UserDefaults.standard.bool(forKey: OnboardingView.seenKey)
         _showOnboarding = State(initialValue: !hasSeenOnboarding)
     }
 
@@ -118,15 +71,10 @@ struct CameraView: View {
         cameraManager.bodyPoseDetector.positioningState
     }
 
-    private var hasSeenOnboarding: Bool {
-        UserDefaults.standard.bool(forKey: "hasSeenCameraOnboarding")
-    }
-
     var body: some View {
         if showOnboarding {
-            SetupInstructionView {
-                UserDefaults.standard.set(true, forKey: "hasSeenCameraOnboarding")
-                withAnimation {
+            OnboardingView {
+                withAnimation(.easeInOut(duration: 0.3)) {
                     showOnboarding = false
                 }
             }
@@ -141,36 +89,25 @@ struct CameraView: View {
             CameraPreview(session: cameraManager.session)
                 .ignoresSafeArea()
 
-            // Layer 2: Silhouette overlay
-            BodySilhouetteOverlay(
-                strokeColor: silhouetteColor,
-                isBlinking: posState == .noPerson,
-                isPulsing: countdownActive
+            // Layer 2: framing guide and the large instruction
+            CameraGuideLayer(
+                state: posState,
+                countdownActive: countdownActive,
+                setupHint: String(localized: "camera_hint")
             )
             .ignoresSafeArea()
 
             // Layer 3: Controls
             VStack(spacing: 0) {
-                // Compact banner for returning users
-                if hasSeenOnboarding {
-                    Text(String(localized: "setup_banner"))
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(DS.textSecondary)
-                        .padding(.horizontal, DS.Space.m)
-                        .padding(.vertical, 6)
-                        .background(DS.bg.opacity(0.6), in: RoundedRectangle(cornerRadius: DS.Radius.button))
-                        .padding(.top, 52)
+                // Help: reopens the placement page of the onboarding
+                HStack {
+                    Spacer()
+                    IconButton(systemName: "questionmark", accessibilityLabel: String(localized: "camera_help")) {
+                        showHelp = true
+                    }
+                    .padding(.trailing, DS.Space.m)
+                    .padding(.top, 52)
                 }
-
-                // Positioning instruction
-                Text(instructionText)
-                    .font(.callout.weight(.medium))
-                    .foregroundStyle(DS.textPrimary)
-                    .padding(.horizontal, DS.Space.inset)
-                    .padding(.vertical, 10)
-                    .background(DS.bg.opacity(0.7), in: RoundedRectangle(cornerRadius: DS.Radius.button))
-                    .padding(.top, hasSeenOnboarding ? 8 : 60)
-                    .animation(.easeInOut(duration: 0.3), value: instructionText)
 
                 Spacer()
 
@@ -212,12 +149,13 @@ struct CameraView: View {
                         if countdownActive {
                             Circle()
                                 .trim(from: 0, to: countdownProgress)
-                                .stroke(DS.accent, style: StrokeStyle(lineWidth: 5, lineCap: .round))
+                                .stroke(DS.success, style: StrokeStyle(lineWidth: 5, lineCap: .round))
                                 .rotationEffect(.degrees(-90))
-                                .frame(width: 90, height: 90)
+                                .frame(width: 110, height: 110)
 
                             Text("\(countdownRemaining)")
-                                .font(.system(size: 32, weight: .bold, design: .rounded))
+                                .font(.system(size: 44, weight: .bold, design: .rounded))
+                                .contentTransition(.numericText(countsDown: true))
                                 .foregroundStyle(DS.textPrimary)
                         } else {
                             Button {
@@ -297,6 +235,11 @@ struct CameraView: View {
         .sheet(isPresented: $showShoppingList) {
             ShoppingListView()
         }
+        .fullScreenCover(isPresented: $showHelp) {
+            OnboardingView(startPage: 1) {
+                showHelp = false
+            }
+        }
         .onChange(of: posState) { oldState, newState in
             handleStateChange(from: oldState, to: newState)
         }
@@ -322,43 +265,6 @@ struct CameraView: View {
             cancelCountdown()
             cancelDebugTimer()
             cameraManager.stopSession()
-        }
-    }
-
-    // MARK: - State-driven UI
-
-    private var instructionText: String {
-        if countdownActive {
-            return String(localized: "hold_still")
-        }
-        switch posState {
-        case .noPerson:
-            return String(localized: "no_person")
-        case .tooFar:
-            return String(localized: "too_far")
-        case .tooClose:
-            return String(localized: "too_close")
-        case .offCenter(.left):
-            return String(localized: "move_right")
-        case .offCenter(.right):
-            return String(localized: "move_left")
-        case .aligned:
-            return String(localized: "stay_still")
-        case .stillConfirmed:
-            return String(localized: "hold_still")
-        }
-    }
-
-    private var silhouetteColor: Color {
-        switch posState {
-        case .noPerson:
-            return Color.white           // blinking handled by overlay animation
-        case .tooClose, .tooFar, .offCenter:
-            return Color.white.opacity(0.25)
-        case .aligned:
-            return DS.success.opacity(0.7)
-        case .stillConfirmed:
-            return DS.success
         }
     }
 
