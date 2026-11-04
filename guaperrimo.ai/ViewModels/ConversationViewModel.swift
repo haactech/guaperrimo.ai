@@ -68,6 +68,12 @@ final class ConversationViewModel {
     var showPieceDetail: Bool = false
     var lookTimeoutMessage: String? = nil
 
+    // "Ask someone": two-look polls shared by link
+    var showAskOpinion: Bool = false
+    var polls: [LookPoll] = []
+    var isCreatingPoll: Bool = false
+    var pollError: String? = nil
+
     var mirrorItems: [StyleMirrorItem] {
         let readyLooks = lookItems.filter { $0.status == "ready" }
         return [.original(imageUrl: imageUrl)] + readyLooks.map { .look($0) }
@@ -563,10 +569,55 @@ final class ConversationViewModel {
         showLookCarousel = true
     }
 
+    // MARK: - Ask someone
+
+    var readyLooks: [LookItem] { lookItems.filter { $0.status == "ready" } }
+
+    func openAskOpinion() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        pollError = nil
+        showAskOpinion = true
+    }
+
+    /// Creates a poll between two rendered looks; nil when it fails (pollError says why).
+    func createPoll(lookIds: [String]) async -> LookPoll? {
+        guard lookIds.count == 2, !isCreatingPoll else { return nil }
+        isCreatingPoll = true
+        pollError = nil
+        defer { isCreatingPoll = false }
+        do {
+            let poll = try await stylistService.createPoll(sessionId: sessionId, lookIds: lookIds)
+            polls.removeAll { $0.id == poll.id }
+            polls.insert(poll, at: 0)
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            return poll
+        } catch APIError.serverError(let code, _) where code == 429 {
+            pollError = String(localized: "poll_error_limit")
+        } catch {
+            logger.error("Create poll failed: \(String(describing: error), privacy: .public)")
+            pollError = String(localized: "poll_error_create")
+        }
+        return nil
+    }
+
+    /// Refreshes the results; a failed refresh keeps what is on screen.
+    func refreshPolls() async {
+        do {
+            let fresh = try await stylistService.fetchPolls(sessionId: sessionId)
+            if fresh.map(\.totalVotes).reduce(0, +) > polls.map(\.totalVotes).reduce(0, +), !polls.isEmpty {
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+            }
+            polls = fresh
+        } catch {
+            logger.error("Fetch polls failed: \(String(describing: error), privacy: .public)")
+        }
+    }
+
     func closeLookCarousel() {
         showLookCarousel = false
         showComparison = false
         showPieceDetail = false
+        showAskOpinion = false
         if lookItems.contains(where: { $0.status == "generating" || $0.status == "pending" }) {
             lookState = .teaser
         } else {

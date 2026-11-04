@@ -14,10 +14,12 @@ struct StyleMirrorOverlayView: View {
     let showHints: Bool
     let overlayOpacity: Double
     let downloadingHint: String?
+    var canAskOpinion: Bool = false
     let onClose: () -> Void
     let onCompare: () -> Void
     let onPieces: () -> Void
     let onList: () -> Void
+    var onAskOpinion: () -> Void = {}
 
     var body: some View {
         VStack(spacing: 0) {
@@ -94,10 +96,16 @@ struct StyleMirrorOverlayView: View {
                     }
                 }
 
-                // "See garments" button (only for looks, not original)
-                if !isOriginal {
-                    SecondaryButton(title: String(localized: "looks_pieces"), action: onPieces)
-                        .background(DS.bg.opacity(0.55), in: RoundedRectangle(cornerRadius: DS.Radius.button))
+                // "See garments" (only for looks) and "ask for opinions" (two looks or more)
+                HStack(spacing: DS.Space.xs) {
+                    if !isOriginal {
+                        SecondaryButton(title: String(localized: "looks_pieces"), action: onPieces)
+                            .background(DS.bg.opacity(0.55), in: RoundedRectangle(cornerRadius: DS.Radius.button))
+                    }
+                    if canAskOpinion {
+                        SecondaryButton(title: String(localized: "poll_ask_button"), systemImage: "person.2", action: onAskOpinion)
+                            .background(DS.bg.opacity(0.55), in: RoundedRectangle(cornerRadius: DS.Radius.button))
+                    }
                 }
             }
             .padding(.bottom, 40)

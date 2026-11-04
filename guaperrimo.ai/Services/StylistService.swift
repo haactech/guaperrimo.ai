@@ -15,6 +15,8 @@ private let logger = Logger(subsystem: "ai.guaperrimo", category: "StylistServic
 protocol StylistService: Sendable {
     func chat(sessionId: String, request: ChatRequest) async throws -> ChatResponse
     func fetchLooks(sessionId: String) async throws -> LooksResponse
+    func createPoll(sessionId: String, lookIds: [String]) async throws -> LookPoll
+    func fetchPolls(sessionId: String) async throws -> [LookPoll]
 }
 
 // MARK: - Live implementation
@@ -41,6 +43,22 @@ struct LiveStylistService: StylistService {
         )
         logger.info("⬇️ Looks response — ready: \(response.readyCount)/\(response.totalCount), allReady: \(response.allReady)")
         return response
+    }
+
+    func createPoll(sessionId: String, lookIds: [String]) async throws -> LookPoll {
+        try await apiClient.postJSON(
+            path: "/session/\(sessionId)/polls",
+            body: CreatePollRequest(lookIds: lookIds),
+            timeout: 15
+        )
+    }
+
+    func fetchPolls(sessionId: String) async throws -> [LookPoll] {
+        let response: PollListResponse = try await apiClient.getJSON(
+            path: "/session/\(sessionId)/polls",
+            timeout: 15
+        )
+        return response.polls
     }
 }
 
@@ -298,6 +316,38 @@ struct StubStylistService: StylistService {
                 ))
             ]
         )
+    }
+
+    func createPoll(sessionId: String, lookIds: [String]) async throws -> LookPoll {
+        try await Task.sleep(for: .milliseconds(400))
+        return Self.samplePoll(lookIds: lookIds, votes: [])
+    }
+
+    func fetchPolls(sessionId: String) async throws -> [LookPoll] {
+        try await Task.sleep(for: .milliseconds(300))
+        return [Self.samplePoll(lookIds: ["look_1", "look_2"], votes: [
+            LookPollVote(choice: 0, voterName: "Mariana", comment: "El verde te queda increíble, se ve fresco para boda de día",
+                         reasons: ["El color le queda mejor", "Va mejor con la ocasión"]),
+            LookPollVote(choice: 1, voterName: "Sofi", reasons: ["Se ve más actual"]),
+            LookPollVote(choice: 0, comment: "El A sin duda", reasons: ["Le queda mejor el corte"]),
+            LookPollVote(choice: 0, reasons: ["El color le queda mejor"])
+        ])]
+    }
+
+    private static func samplePoll(lookIds: [String], votes: [LookPollVote]) -> LookPoll {
+        let names = ["Casual Elevado", "Smart Casual"]
+        let options = lookIds.prefix(2).enumerated().map { index, id in
+            let mine = votes.filter { $0.choice == index }
+            var counts: [String: Int] = [:]
+            for label in mine.flatMap(\.reasons) { counts[label, default: 0] += 1 }
+            return LookPollOption(
+                lookId: id, name: names[index % names.count],
+                imageUrl: "https://picsum.photos/400/600?random=\(index)", voteCount: mine.count,
+                reasons: counts.sorted { $0.value > $1.value }.map { LookPollReason(id: $0.key, label: $0.key, count: $0.value) }
+            )
+        }
+        return LookPoll(id: "stub_poll", url: "http://192.168.100.39:8080/v/stub_poll", open: true,
+                        totalVotes: votes.count, options: options, votes: votes)
     }
 
     private static let occasionOptions = [

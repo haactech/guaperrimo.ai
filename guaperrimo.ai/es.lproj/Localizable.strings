@@ -135,3 +135,27 @@
 "preview_send_error" = "No pudimos enviar tu selección. Intenta de nuevo.";
 "preview_open" = "Ver mis ideas";
 "preview_close" = "Cerrar";
+
+/* Ask someone: two-look polls shared by link */
+"poll_ask_button" = "Pedir opinión";
+"poll_title" = "Pedir opinión";
+"poll_intro" = "Manda dos looks a alguien de confianza —tu pareja, tu hermana, un amigo— y que te diga con cuál te ves mejor. Solo los ve quien tenga el link, y deja de funcionar en 3 días.";
+"poll_pick_two" = "Elige dos looks";
+"poll_these_two" = "Estos dos looks";
+"poll_create" = "Crear link para compartir";
+"poll_creating" = "Creando link…";
+"poll_share" = "Compartir link";
+"poll_share_again" = "Compartir otra vez";
+"poll_share_message" = "¿Con cuál me veo mejor? Ayúdame a escoger, toma 10 segundos:";
+"poll_link_ready" = "Link listo. Mándalo a 2 o 3 personas; sus votos aparecen aquí.";
+"poll_results" = "Lo que opinan";
+"poll_vote_one" = "1 voto";
+"poll_votes" = "%lld votos";
+"poll_no_votes" = "Todavía nadie vota. Los votos aparecen aquí en cuanto llegan.";
+"poll_open" = "Abierta";
+"poll_closed" = "Cerrada";
+"poll_favorite" = "Favorito";
+"poll_someone" = "Alguien";
+"poll_picked" = "%@ eligió el %@";
+"poll_error_create" = "No pudimos crear el link. Intenta de nuevo.";
+"poll_error_limit" = "Ya creaste 5 links en esta sesión.";

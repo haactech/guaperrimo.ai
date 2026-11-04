@@ -135,3 +135,27 @@
 "preview_send_error" = "We couldn't send your picks. Try again.";
 "preview_open" = "See my ideas";
 "preview_close" = "Close";
+
+/* Ask someone: two-look polls shared by link */
+"poll_ask_button" = "Ask for opinions";
+"poll_title" = "Ask for opinions";
+"poll_intro" = "Send two looks to someone you trust — your partner, your sister, a friend — and let them tell you which one suits you better. Only people with the link can see them, and it stops working in 3 days.";
+"poll_pick_two" = "Pick two looks";
+"poll_these_two" = "These two looks";
+"poll_create" = "Create a link to share";
+"poll_creating" = "Creating link…";
+"poll_share" = "Share link";
+"poll_share_again" = "Share again";
+"poll_share_message" = "Which one looks better on me? Help me choose, it takes 10 seconds:";
+"poll_link_ready" = "Link ready. Send it to 2 or 3 people; their votes show up here.";
+"poll_results" = "What they think";
+"poll_vote_one" = "1 vote";
+"poll_votes" = "%lld votes";
+"poll_no_votes" = "No votes yet. They show up here as soon as they arrive.";
+"poll_open" = "Open";
+"poll_closed" = "Closed";
+"poll_favorite" = "Favorite";
+"poll_someone" = "Someone";
+"poll_picked" = "%@ picked %@";
+"poll_error_create" = "We couldn't create the link. Try again.";
+"poll_error_limit" = "You already created 5 links in this session.";

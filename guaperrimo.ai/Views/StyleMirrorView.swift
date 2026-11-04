@@ -75,10 +75,12 @@ struct StyleMirrorView: View {
                         showHints: showHints,
                         overlayOpacity: overlayOpacity,
                         downloadingHint: downloadingHint,
+                        canAskOpinion: viewModel.readyLooksCount >= 2,
                         onClose: { viewModel.closeLookCarousel() },
                         onCompare: { viewModel.showComparison = true },
                         onPieces: { viewModel.showPieceDetail = true },
-                        onList: { viewModel.showShoppingListInMirror = true }
+                        onList: { viewModel.showShoppingListInMirror = true },
+                        onAskOpinion: { viewModel.openAskOpinion() }
                     )
                 }
             }
@@ -173,6 +175,9 @@ struct StyleMirrorView: View {
         }
         .sheet(isPresented: $viewModel.showShoppingListInMirror) {
             ShoppingListView()
+        }
+        .sheet(isPresented: $viewModel.showAskOpinion) {
+            AskOpinionSheet(viewModel: viewModel)
         }
         .sheet(isPresented: $viewModel.showPieceDetail) {
             if let look = viewModel.currentLook, !look.pieces.isEmpty {
